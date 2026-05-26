@@ -20,14 +20,11 @@ const testName = 'JEE Main Full Mock Test - 72 Questions';
 
 const svgData = (title: string, lines: string[]) => {
   const rows = lines.map((line, index) => (
-    `<text x="30" y="${76 + index * 30}" font-size="20" fill="#111827" font-family="Arial, sans-serif">${escapeXml(line)}</text>`
+    `<text x="0" y="${48 + index * 30}" font-size="22" fill="#111827" font-family="Arial, sans-serif">${escapeXml(formatMathText(line))}</text>`
   )).join('');
   const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300">
-  <rect width="720" height="300" rx="18" fill="#f8fafc"/>
-  <rect x="16" y="16" width="688" height="268" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-  <text x="30" y="46" font-size="24" font-weight="700" fill="#0f172a" font-family="Arial, sans-serif">${escapeXml(title)}</text>
-  <line x1="30" y1="58" x2="690" y2="58" stroke="#e2e8f0" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="150" viewBox="0 0 720 150">
+  <text x="0" y="24" font-size="24" font-weight="700" fill="#0f172a" font-family="Arial, sans-serif">${escapeXml(formatMathText(title))}</text>
   ${rows}
 </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -35,6 +32,25 @@ const svgData = (title: string, lines: string[]) => {
 
 const escapeXml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const formatMathText = (value: string) =>
+  value
+    .replace(/\btheta\b/gi, 'θ')
+    .replace(/\balpha\b/gi, 'α')
+    .replace(/\bbeta\b/gi, 'β')
+    .replace(/\blambda\b/gi, 'λ')
+    .replace(/\bomega\b/gi, 'ω')
+    .replace(/\bDelta\b/g, 'Δ')
+    .replace(/\bphi\b/gi, 'φ')
+    .replace(/\bpi\b/gi, 'π')
+    .replace(/\bmu\b/gi, 'μ')
+    .replace(/\bepsilon\b/gi, 'ε')
+    .replace(/\bsqrt\(([^)]+)\)/gi, '√($1)')
+    .replace(/\bintegral\b/gi, '∫')
+    .replace(/\s*->\s*/g, ' → ')
+    .replace(/\bdegrees\b/gi, '°')
+    .replace(/\bdeg\b/gi, '°')
+    .replace(/\^(-?\d+)/g, (_match, power: string) => power.split('').map((char: string) => ({ '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' }[char] || char)).join(''));
 
 const q = (
   subject: SeedQuestion['subject'],
@@ -52,7 +68,7 @@ const questions: SeedQuestion[] = [
   q('Physics', 'Projectile Motion', 'medium', 'A projectile is fired with speed 20 m/s at 30 degrees. Taking g = 10 m/s^2, its time of flight is:', ['1 s', '2 s', '3 s', '4 s'], 1, 'T = 2u sin theta/g = 2 x 20 x 1/2 / 10 = 2 s.', ['u=20 m/s', 'theta=30 deg', 'T=2u sin(theta)/g']),
   q('Physics', 'Newton Laws', 'medium', 'Two blocks of masses 2 kg and 3 kg are pushed by a 10 N force on a smooth surface. Acceleration of the system is:', ['1 m/s^2', '2 m/s^2', '3 m/s^2', '5 m/s^2'], 1, 'Total mass = 5 kg. a = F/M = 10/5 = 2 m/s^2.', ['10 N -> [2 kg][3 kg]', 'smooth horizontal surface', 'a = F/(m1+m2)']),
   q('Physics', 'Friction', 'medium', 'A 5 kg block is on a rough horizontal plane with coefficient of friction 0.2. Minimum horizontal force to just move it is:', ['5 N', '10 N', '15 N', '20 N'], 1, 'Limiting friction = mu mg = 0.2 x 5 x 10 = 10 N.', ['m=5 kg', 'mu=0.2', 'F_min = mu mg']),
-  q('Physics', 'Work Energy', 'easy', 'A body of mass 2 kg moving at 5 m/s is brought to rest. Work done by the retarding force is:', ['-10 J', '-25 J', '-50 J', '-100 J'], 2, 'Work done = change in KE = 0 - (1/2)mv^2 = -25 J? For m=2, v=5: KE=25 J, so work = -25 J.', ['m=2 kg', 'v=5 m/s -> 0', 'W = Delta KE']),
+  q('Physics', 'Work Energy', 'easy', 'A body of mass 2 kg moving at 5 m/s is brought to rest. Work done by the retarding force is:', ['-10 J', '-25 J', '-50 J', '-100 J'], 1, 'Work done = change in KE = 0 - (1/2)mv^2 = -25 J. For m=2, v=5: KE=25 J, so work = -25 J.', ['m=2 kg', 'v=5 m/s -> 0', 'W = Delta KE']),
   q('Physics', 'Circular Motion', 'medium', 'A car moves on a circular track of radius 50 m with speed 10 m/s. Its centripetal acceleration is:', ['1 m/s^2', '2 m/s^2', '4 m/s^2', '5 m/s^2'], 1, 'a_c = v^2/r = 100/50 = 2 m/s^2.', ['r=50 m', 'v=10 m/s', 'a_c=v^2/r']),
   q('Physics', 'Gravitation', 'medium', 'At height equal to Earth radius R above the surface, acceleration due to gravity is:', ['g/2', 'g/4', 'g/8', '2g'], 1, 'Distance from center = 2R. g_h = g(R/2R)^2 = g/4.', ['surface: R', 'height: R', 'center distance: 2R']),
   q('Physics', 'SHM', 'hard', 'For a spring block system with k = 200 N/m and m = 2 kg, angular frequency is:', ['5 rad/s', '10 rad/s', '20 rad/s', '100 rad/s'], 1, 'omega = sqrt(k/m) = sqrt(200/2) = sqrt(100) = 10 rad/s.', ['spring k=200 N/m', 'block m=2 kg', 'omega=sqrt(k/m)']),
@@ -173,10 +189,10 @@ async function seed() {
 
   await Question.insertMany(questions.map((item) => ({
     testId: test._id,
-    text: item.text,
-    options: item.options.map((option, index) => ({ label: String(index), text: option })),
+    text: formatMathText(item.text),
+    options: item.options.map((option, index) => ({ label: String(index), text: formatMathText(option) })),
     correctAnswer: String(item.answer),
-    explanation: item.explanation,
+    explanation: formatMathText(item.explanation),
     type: 'mcq',
     category: 'JEE Main',
     subject: item.subject,
