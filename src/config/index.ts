@@ -9,6 +9,7 @@ const parseCsv = (value?: string) =>
     .filter(Boolean);
 
 const corsOrigins = parseCsv(process.env.CORS_ORIGIN);
+const localCorsOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
 export const config = {
   env: process.env.NODE_ENV || 'development',
@@ -23,7 +24,7 @@ export const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
   cors: {
-    origins: corsOrigins.length > 0 ? corsOrigins : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    origins: Array.from(new Set([...corsOrigins, ...localCorsOrigins])),
   },
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
