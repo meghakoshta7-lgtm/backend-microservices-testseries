@@ -232,23 +232,13 @@ export const extractPdfWithOCR = asyncHandler(async (req: AuthRequest, res: Resp
     throw new AppError('PDF data is required as base64 string', 400);
   }
 
-  // Check if OCR services are available
-  if (!ocrService.isAvailable()) {
-    throw new AppError(
-      'OCR services not configured. Please set NOUGAT_API_URL environment variable.',
-      503
-    );
-  }
-
   try {
-    // Convert base64 to buffer
     const pdfBuffer = Buffer.from(pdfData, 'base64');
     if (pdfBuffer.length === 0) {
       throw new AppError('PDF data is empty', 400);
     }
 
-    // Extract with OCR using fallback logic
-    const result = await ocrService.extractWithFallback(pdfBuffer, isMathContent);
+    const result = await ocrService.extractWithFallback(pdfBuffer);
 
     if (!result.success) {
       throw new AppError(`OCR extraction failed: ${result.error}`, 500);

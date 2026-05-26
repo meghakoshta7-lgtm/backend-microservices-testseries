@@ -38,19 +38,3 @@ services:
         value: "12"
       - key: EMAIL_ENABLED
         value: "false"
-      - key: NOUGAT_API_URL
-        sync: false
-
-  - type: web
-    name: nougat-ocr-service
-    runtime: python
-    plan: starter
-    branch: main
-    buildCommand: pip install -r nougat_service/requirements.txt
-    startCommand: cd nougat_service && python app.py
-    healthCheckPath: /health
-    envVars:
-      - key: PORT
-        value: "8503"
-      - key: NOUGAT_MODEL
-        value: facebook/nougat-base

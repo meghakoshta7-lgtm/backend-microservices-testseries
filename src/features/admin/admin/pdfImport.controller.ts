@@ -41,7 +41,7 @@ export const importPdfQuestions = asyncHandler(async (req: AuthRequest, res: Res
     throw new AppError('Provide testId or set createTest=true to save questions', 400);
   }
 
-  const result = await ocrService.extractWithFallback(file.buffer, true);
+  const result = await ocrService.extractWithFallback(file.buffer);
   if (!result.success) {
     throw new AppError(`OCR failed: ${result.error}`, 500);
   }
