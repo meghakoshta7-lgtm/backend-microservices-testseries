@@ -28,6 +28,8 @@
     "seed": "tsx src/scripts/seed.ts",
     "seed-admin": "tsx src/scripts/seed-admin.ts",
     "seed-admin:prod": "node dist/scripts/seed-admin.js",
+    "seed-jee-main-72": "tsx src/scripts/seed-jee-main-72.ts",
+    "seed-jee-main-72:prod": "node dist/scripts/seed-jee-main-72.js",
     "seed-exams": "tsx src/scripts/seed-exams.ts",
     "seed-tests": "tsx src/scripts/seed-tests.ts",
     "lint": "eslint src --ext .ts"
