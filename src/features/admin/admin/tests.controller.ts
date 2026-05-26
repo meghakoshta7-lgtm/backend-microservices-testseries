@@ -7,6 +7,7 @@ import { Question } from '@/models/Question';
 import { TestResult } from '@/models/TestResult';
 import { ActivityLog } from '@/models/ActivityLog';
 import { deactivateExpiredTests } from '@/utils/testAvailability';
+import { ocrService } from '@/services/ocr.service';
 
 const parseDate = (value: unknown) => value ? new Date(String(value)) : null;
 const testTypes = ['subject', 'chapter', 'full'] as const;
@@ -217,4 +218,89 @@ export const bulkUploadQuestions = asyncHandler(async (req: AuthRequest, res: Re
     ...q, correctAnswer: typeof q.correctAnswer === 'string' ? q.correctAnswer : JSON.stringify(q.correctAnswer),
   })));
   res.status(201).json({ success: true, data: { count: created.length } });
+});
+
+/**
+ * OCR-based PDF text extraction endpoint
+ * Used when standard PDF.js extraction produces corrupted text
+ * Expects base64-encoded PDF data in request body
+ */
+export const extractPdfWithOCR = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const { pdfData, isMathContent = false } = req.body;
+
+  if (!pdfData || typeof pdfData !== 'string') {
+    throw new AppError('PDF data is required as base64 string', 400);
+  }
+
+  // Check if OCR services are available
+  if (!ocrService.isAvailable()) {
+    throw new AppError(
+      'OCR services not configured. Please set NOUGAT_API_URL environment variable.',
+      503
+    );
+  }
+
+  try {
+    // Convert base64 to buffer
+    const pdfBuffer = Buffer.from(pdfData, 'base64');
+    if (pdfBuffer.length === 0) {
+      throw new AppError('PDF data is empty', 400);
+    }
+
+    // Extract with OCR using fallback logic
+    const result = await ocrService.extractWithFallback(pdfBuffer, isMathContent);
+
+    if (!result.success) {
+      throw new AppError(`OCR extraction failed: ${result.error}`, 500);
+    }
+
+    // Log the extraction
+    await ActivityLog.create({
+      userId: req.user!._id,
+      action: 'pdf_ocr_extraction',
+      resource: 'pdf_processing',
+      details: {
+        provider: result.provider,
+        confidence: result.confidence,
+        processingTime: result.processingTime,
+        textLength: result.text.length,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        text: result.text,
+        provider: result.provider,
+        confidence: result.confidence,
+        processingTime: result.processingTime,
+        availableProviders: ocrService.getAvailableProviders(),
+      },
+    });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      error instanceof Error ? error.message : 'PDF extraction failed',
+      500
+    );
+  }
+});
+
+/**
+ * Check OCR service availability and configuration
+ */
+export const checkOCRAvailability = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const available = ocrService.isAvailable();
+  const providers = ocrService.getAvailableProviders();
+
+  res.json({
+    success: true,
+    data: {
+      available,
+      providers,
+      message: available
+        ? `OCR services available with providers: ${providers.join(', ')}`
+        : 'OCR services not configured. Set MATHPIX_API_KEY or PIX2TEXT_API_KEY.',
+    },
+  });
 });

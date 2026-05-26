@@ -13,3 +13,4 @@ export * from './analytics.controller';
 export * from './settings.controller';
 export * from './catalog.controller';
 export * from './engagement.controller';
+export * from './pdfImport.controller';

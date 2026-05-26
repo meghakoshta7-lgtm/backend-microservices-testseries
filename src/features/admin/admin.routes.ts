@@ -1,7 +1,10 @@
 import { Router } from 'express';
+import multer from 'multer';
 import * as c from './admin';
 import * as studyCtrl from '../study/study.controller';
 import { authenticate, authorize } from '@/middleware/auth';
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
 const router = Router();
 
@@ -36,6 +39,9 @@ router.post('/groups', c.createGroup);
 router.patch('/groups/:id', c.updateGroup);
 router.delete('/groups/:id', c.deleteGroup);
 
+// ─── PDF Import (Nougat → Parse → JSON → Import) ───
+router.post('/pdf/import', upload.single('pdf'), c.importPdfQuestions);
+
 // ─── TESTS ───
 router.get('/tests', c.getTests);
 router.post('/tests', c.createTest);
@@ -43,6 +49,8 @@ router.post('/tests/bulk', c.bulkCreateTests);
 router.patch('/tests/:id', c.updateTest);
 router.post('/tests/:id/duplicate', c.duplicateTest);
 router.delete('/tests/:id', c.deleteTest);
+router.post('/tests/pdf/ocr-extract', c.extractPdfWithOCR);
+router.get('/tests/pdf/ocr-check', c.checkOCRAvailability);
 
 // ─── QUESTIONS ───
 router.get('/questions', c.getQuestions);

@@ -448,7 +448,14 @@ export const enrollTest = asyncHandler(async (req: AuthRequest, res: Response): 
   if (!test) throw new AppError('Test not found', 404);
 
   const existing = await Enrollment.findOne({ userId: req.user._id, testId });
-  if (existing) throw new AppError('Already enrolled', 400);
+  if (existing) {
+    res.json({
+      success: true,
+      message: 'Already enrolled',
+      data: { id: existing._id, enrolledAt: existing.enrolledAt, alreadyEnrolled: true },
+    });
+    return;
+  }
 
   const enrollment = await Enrollment.create({ userId: req.user._id, testId });
   await sendTestEnrollmentEmail(req.user, {
