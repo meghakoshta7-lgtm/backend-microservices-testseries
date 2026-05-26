@@ -17,6 +17,7 @@ interface CreateAppOptions {
 export const createApp = ({ name, description, routes }: CreateAppOptions) => {
   const app = express();
 
+  app.set('trust proxy', 1);
   app.use(helmet());
   app.use(cors({
     origin: (origin, callback) => {
@@ -38,6 +39,11 @@ export const createApp = ({ name, description, routes }: CreateAppOptions) => {
     message: { success: false, message: 'Too many requests, please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => (
+      req.method === 'OPTIONS' ||
+      req.path === '/health' ||
+      req.path.startsWith('/api/auth/')
+    ),
   }));
 
   app.use(express.json({ limit: '40mb' }));
