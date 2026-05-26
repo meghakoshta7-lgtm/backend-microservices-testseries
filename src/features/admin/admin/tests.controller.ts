@@ -232,13 +232,17 @@ export const extractPdfWithOCR = asyncHandler(async (req: AuthRequest, res: Resp
     throw new AppError('PDF data is required as base64 string', 400);
   }
 
+  if (!ocrService.isAvailable()) {
+    throw new AppError('PDF extraction service unavailable', 503);
+  }
+
   try {
     const pdfBuffer = Buffer.from(pdfData, 'base64');
     if (pdfBuffer.length === 0) {
       throw new AppError('PDF data is empty', 400);
     }
 
-    const result = await ocrService.extractWithFallback(pdfBuffer);
+    const result = await ocrService.extractWithFallback(pdfBuffer, isMathContent);
 
     if (!result.success) {
       throw new AppError(`OCR extraction failed: ${result.error}`, 500);
