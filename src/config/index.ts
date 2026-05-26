@@ -2,6 +2,14 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const parseCsv = (value?: string) =>
+  (value || '')
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+
+const corsOrigins = parseCsv(process.env.CORS_ORIGIN);
+
 export const config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
@@ -15,7 +23,7 @@ export const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origins: corsOrigins.length > 0 ? corsOrigins : ['http://localhost:5173', 'http://127.0.0.1:5173'],
   },
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),

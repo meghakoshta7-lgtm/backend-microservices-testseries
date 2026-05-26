@@ -5,6 +5,7 @@ import { asyncHandler } from '@/middleware/asyncHandler';
 import { AuthRequest } from '@/middleware/auth';
 import { User } from '@/models/User';
 import { sendLoginEmail, sendPasswordResetEmail } from '@/services';
+import { config } from '@/config';
 
 export const register = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const { name, email, password } = req.body;
@@ -252,7 +253,7 @@ export const refreshToken = asyncHandler(async (req: AuthRequest, res: Response)
   }
 
   const jwt = require('jsonwebtoken');
-  const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET) as { userId: string };
+  const decoded = jwt.verify(refreshToken, config.jwt.refreshSecret) as { userId: string };
 
   const user = await User.findById(decoded.userId);
   if (!user || user.refreshToken !== refreshToken) {

@@ -14,6 +14,7 @@ import { SubscriptionPlan } from '@/models/SubscriptionPlan';
 import { isUserPremium, getActiveSubscription } from '@/services';
 import { calculateAccuracy, computeAverageScore, computePercentage } from '@/utils';
 import { getAvailableTestQuery } from '@/utils/testAvailability';
+import { buildFunnyTestNotifications } from '@/utils/funnyNotifications';
 
 export const getStats = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) { throw new AppError('User not found', 404); }
@@ -190,9 +191,24 @@ export const getFullDashboard = asyncHandler(async (req: AuthRequest, res: Respo
   };
 
   // NOTIFICATIONS
-  const notificationsData = (await Notification.find({}).sort({ createdAt: -1 }).limit(10)).map(n => ({
-    _id: n._id, title: n.title, body: n.body, type: n.type, createdAt: n.createdAt,
-  }));
+  const funnyNotifications = buildFunnyTestNotifications({
+    userId,
+    tests: allTests,
+    recentResults: allResults,
+    streak: req.user.streak || 0,
+  });
+  const notificationsData = [
+    ...funnyNotifications,
+    ...(await Notification.find({}).sort({ createdAt: -1 }).limit(6)).map(n => ({
+      _id: n._id,
+      title: n.title,
+      body: n.body,
+      message: n.body,
+      type: n.type,
+      createdAt: n.createdAt,
+      isRead: n.status !== 'sent',
+    })),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
 
   res.json({
     success: true,
@@ -200,7 +216,7 @@ export const getFullDashboard = asyncHandler(async (req: AuthRequest, res: Respo
       header, continueLearning, preparationProgress: { overallPercent, dailyGoal, weeklyGoal, streak: req.user.streak || 0, subjectProgress: subjectPerformance, topicProgress: [], testProgress: testsTaken },
       recommended, upcomingTests, myPerformance, subjectPerformance, recentActivity,
       testLibrary, analytics, rewards: { badges, streak: req.user.streak || 0, achievements: achievements.length },
-      subscription, notifications: { unread: notifications.length, items: notificationsData },
+      subscription, notifications: { unread: notificationsData.filter(n => !n.isRead).length, items: notificationsData },
     },
   });
 });
