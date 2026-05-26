@@ -5,6 +5,8 @@ export interface ITest extends Document {
   description: string;
   category: string;
   subject: string;
+  testType: 'subject' | 'chapter' | 'full';
+  chapter?: string;
   difficulty: 'easy' | 'medium' | 'hard';
   duration: number;
   totalQuestions: number;
@@ -32,6 +34,8 @@ const testSchema = new Schema<ITest>(
     description: { type: String, default: '' },
     category: { type: String, required: true },
     subject: { type: String, required: true },
+    testType: { type: String, enum: ['subject', 'chapter', 'full'], default: 'subject' },
+    chapter: { type: String, default: '' },
     difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
     duration: { type: Number, required: true },
     totalQuestions: { type: Number, required: true },
@@ -54,6 +58,7 @@ const testSchema = new Schema<ITest>(
 );
 
 testSchema.index({ category: 1, subject: 1, difficulty: 1 });
+testSchema.index({ category: 1, testType: 1 });
 testSchema.index({ isActive: 1, isPremium: 1 });
 testSchema.index({ isActive: 1, activeFrom: 1, activeUntil: 1 });
 

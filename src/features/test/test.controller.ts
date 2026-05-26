@@ -485,6 +485,8 @@ export const getMyTests = asyncHandler(async (req: AuthRequest, res: Response): 
     description: t.description,
     category: t.category,
     subject: t.subject,
+    testType: t.testType,
+    chapter: t.chapter,
     difficulty: t.difficulty,
     duration: t.duration,
     totalQuestions: t.totalQuestions,

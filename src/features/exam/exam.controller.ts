@@ -37,7 +37,7 @@ export const getExamDetail = asyncHandler(async (req: AuthRequest, res: Response
   const freeTestCount = await Test.countDocuments(getAvailableTestQuery({ category: exam.name, isPremium: false }));
   const premiumTestCount = testCount - freeTestCount;
   const tests = await Test.find(getAvailableTestQuery({ category: exam.name }))
-    .select('name description difficulty duration totalQuestions isPremium price originalPrice subject tags activeFrom activeUntil')
+    .select('name description difficulty duration totalQuestions isPremium price originalPrice subject testType chapter tags activeFrom activeUntil')
     .sort({ isPremium: 1, createdAt: -1 })
     .limit(10);
   const testsWithQuestionCount = await Promise.all(

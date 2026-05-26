@@ -9,6 +9,21 @@ import { ActivityLog } from '@/models/ActivityLog';
 import { deactivateExpiredTests } from '@/utils/testAvailability';
 
 const parseDate = (value: unknown) => value ? new Date(String(value)) : null;
+const testTypes = ['subject', 'chapter', 'full'] as const;
+const normalizeTestType = (value: unknown) => testTypes.includes(value as any) ? value : 'subject';
+const mapTest = async (t: any) => {
+  const questionCount = await Question.countDocuments({ testId: t._id, isActive: true });
+  return {
+    id: t._id, title: t.name, description: t.description, category: t.category, subject: t.subject,
+    testType: t.testType || 'subject', chapter: t.chapter || '', difficulty: t.difficulty,
+    questionsCount: questionCount || t.totalQuestions || t.questionCount || 0, duration: t.duration,
+    passingScore: t.passingMarks || 0, totalPoints: t.totalMarks || 0, negativeMarks: t.negativeMarks || 0,
+    status: t.isActive ? 'published' as const : 'draft' as const, isPremium: t.isPremium,
+    price: t.price || 0, originalPrice: t.originalPrice || 0,
+    createdBy: '', scheduledAt: t.scheduledAt || null, activeFrom: t.activeFrom || null, activeUntil: t.activeUntil || null,
+    createdAt: t.createdAt, updatedAt: t.updatedAt,
+  };
+};
 
 export const getTests = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   await deactivateExpiredTests(Test);
@@ -17,11 +32,13 @@ export const getTests = asyncHandler(async (req: AuthRequest, res: Response): Pr
   const limit = parseInt(req.query.limit as string) || 20;
   const search = (req.query.search as string) || '';
   const category = (req.query.category as string) || '';
+  const testType = (req.query.testType as string) || '';
   const statusFilter = (req.query.status as string) || '';
 
   const query: Record<string, any> = {};
   if (search) query.name = { $regex: search, $options: 'i' };
   if (category) query.category = category;
+  if (testType) query.testType = testType;
   if (statusFilter === 'published') query.isActive = true;
   if (statusFilter === 'draft') query.isActive = false;
 
@@ -33,26 +50,19 @@ export const getTests = asyncHandler(async (req: AuthRequest, res: Response): Pr
 
   const attemptMap = new Map(testAttempts.map((t: any) => [t._id.toString(), { count: t.count, avgScore: Math.round(t.avgScore) }]));
 
-  const mapped = await Promise.all(tests.map(async t => {
-    const questionCount = await Question.countDocuments({ testId: t._id, isActive: true });
-    return {
-      id: t._id, title: t.name, description: t.description, category: t.category, difficulty: t.difficulty,
-      questionsCount: questionCount, duration: t.duration,
-      passingScore: t.passingMarks || 0, totalPoints: t.totalMarks || 0, negativeMarks: t.negativeMarks || 0,
-      status: t.isActive ? 'published' as const : 'draft' as const, isPremium: t.isPremium,
-      price: t.price || 0, originalPrice: t.originalPrice || 0,
-      createdBy: '', scheduledAt: t.scheduledAt || null, activeFrom: t.activeFrom || null, activeUntil: t.activeUntil || null,
-      createdAt: t.createdAt, updatedAt: t.updatedAt,
-      attemptedCount: attemptMap.get(t._id.toString())?.count || 0, avgScore: attemptMap.get(t._id.toString())?.avgScore || 0,
-    };
-  }));
+  const mapped = await Promise.all(tests.map(async t => ({
+    ...(await mapTest(t)),
+    attemptedCount: attemptMap.get(t._id.toString())?.count || 0,
+    avgScore: attemptMap.get(t._id.toString())?.avgScore || 0,
+  })));
 
   res.json({ success: true, data: { tests: mapped, totalTests: total, totalPages: Math.ceil(total / limit), currentPage: page } });
 });
 
 export const createTest = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const test = await Test.create({
-    name: req.body.title, description: req.body.description || '', category: req.body.category, subject: req.body.category || '',
+    name: req.body.title, description: req.body.description || '', category: req.body.category, subject: req.body.subject || req.body.category || '',
+    testType: normalizeTestType(req.body.testType), chapter: req.body.chapter || '',
     difficulty: req.body.difficulty || 'medium', duration: req.body.duration || 60, totalQuestions: req.body.questionsCount || 0,
     totalMarks: req.body.totalPoints || 100, passingMarks: req.body.passingScore || 40, negativeMarks: req.body.negativeMarks || 0,
     isActive: req.body.status === 'published', isPremium: req.body.isPremium || false,
@@ -63,7 +73,7 @@ export const createTest = asyncHandler(async (req: AuthRequest, res: Response): 
     activeUntil: parseDate(req.body.activeUntil),
   });
   await ActivityLog.create({ userId: req.user!._id, action: 'create_test', resource: 'tests', resourceId: test._id.toString() });
-  res.status(201).json({ success: true, data: { ...test.toObject(), id: test._id, title: test.name } });
+  res.status(201).json({ success: true, data: { ...(await mapTest(test)), attemptedCount: 0, avgScore: 0 } });
 });
 
 export const updateTest = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
@@ -74,6 +84,7 @@ export const updateTest = asyncHandler(async (req: AuthRequest, res: Response): 
     else if (map[k]) updates[map[k]] = v;
     else if (!['id', '_id'].includes(k)) updates[k] = v;
   });
+  if ('testType' in req.body) updates.testType = normalizeTestType(req.body.testType);
   if (req.body.questionsCount) updates.questionCount = req.body.questionsCount;
   if ('scheduledAt' in req.body) updates.scheduledAt = parseDate(req.body.scheduledAt);
   if ('activeFrom' in req.body) updates.activeFrom = parseDate(req.body.activeFrom);
@@ -82,7 +93,7 @@ export const updateTest = asyncHandler(async (req: AuthRequest, res: Response): 
   if (!test) throw new AppError('Test not found', 404);
   const [ad] = await TestResult.aggregate([{ $match: { testId: test._id } }, { $group: { _id: null, count: { $sum: 1 }, avg: { $avg: '$score' } } }]);
   await ActivityLog.create({ userId: req.user!._id, action: 'update_test', resource: 'tests', resourceId: test._id.toString() });
-  res.json({ success: true, data: { id: test._id, title: test.name, description: test.description, category: test.category, difficulty: test.difficulty, questionsCount: test.totalQuestions || test.questionCount || 0, duration: test.duration, passingScore: test.passingMarks || 0, totalPoints: test.totalMarks || 0, negativeMarks: test.negativeMarks || 0, status: test.isActive ? 'published' as const : 'draft' as const, isPremium: test.isPremium, price: test.price || 0, originalPrice: test.originalPrice || 0, attemptedCount: ad?.count || 0, avgScore: ad ? Math.round(ad.avg) : 0, scheduledAt: test.scheduledAt || null, activeFrom: test.activeFrom || null, activeUntil: test.activeUntil || null, createdAt: test.createdAt, updatedAt: test.updatedAt } });
+  res.json({ success: true, data: { ...(await mapTest(test)), attemptedCount: ad?.count || 0, avgScore: ad ? Math.round(ad.avg) : 0 } });
 });
 
 export const duplicateTest = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
@@ -90,6 +101,7 @@ export const duplicateTest = asyncHandler(async (req: AuthRequest, res: Response
   if (!original) throw new AppError('Test not found', 404);
   const dup = await Test.create({
     name: `${original.name} (Copy)`, description: original.description, category: original.category, subject: original.subject,
+    testType: original.testType, chapter: original.chapter,
     difficulty: original.difficulty, duration: original.duration, totalQuestions: original.totalQuestions, totalMarks: original.totalMarks,
     passingMarks: original.passingMarks, negativeMarks: original.negativeMarks, isActive: false, isPremium: original.isPremium,
     price: original.price || 0, originalPrice: original.originalPrice || 0,
@@ -100,7 +112,43 @@ export const duplicateTest = asyncHandler(async (req: AuthRequest, res: Response
     const qs = questions.map(q => ({ ...q.toObject(), _id: undefined, testId: dup._id }));
     await Question.insertMany(qs);
   }
-  res.status(201).json({ success: true, data: { id: dup._id, title: dup.name } });
+  res.status(201).json({ success: true, data: { ...(await mapTest(dup)), attemptedCount: 0, avgScore: 0 } });
+});
+
+export const bulkCreateTests = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const { tests } = req.body;
+  if (!Array.isArray(tests) || !tests.length) throw new AppError('Send an array of tests', 400);
+
+  const docs = tests.map((item: any) => ({
+    name: item.title || item.name,
+    description: item.description || '',
+    category: item.category,
+    subject: item.subject || item.category,
+    testType: normalizeTestType(item.testType),
+    chapter: item.chapter || '',
+    difficulty: item.difficulty || 'medium',
+    duration: Number(item.duration || 60),
+    totalQuestions: Number(item.questionsCount || item.totalQuestions || 0),
+    totalMarks: Number(item.totalPoints || item.totalMarks || 100),
+    passingMarks: Number(item.passingScore || item.passingMarks || 40),
+    negativeMarks: Number(item.negativeMarks || 0),
+    isActive: item.status === 'published' || item.isActive === true,
+    isPremium: Boolean(item.isPremium),
+    price: Number(item.price || 0),
+    originalPrice: Number(item.originalPrice || 0),
+    questionCount: Number(item.questionsCount || item.totalQuestions || 0),
+    scheduledAt: parseDate(item.scheduledAt),
+    activeFrom: parseDate(item.activeFrom || item.scheduledAt),
+    activeUntil: parseDate(item.activeUntil),
+  }));
+
+  const invalidIndex = docs.findIndex((item) => !item.name || !item.category || !item.subject);
+  if (invalidIndex !== -1) throw new AppError(`Row ${invalidIndex + 1}: title, category and subject are required`, 400);
+
+  const created = await Test.insertMany(docs, { ordered: true });
+  await ActivityLog.create({ userId: req.user!._id, action: 'bulk_create_tests', resource: 'tests', details: { count: created.length } });
+  const mapped = await Promise.all(created.map(async (test) => ({ ...(await mapTest(test)), attemptedCount: 0, avgScore: 0 })));
+  res.status(201).json({ success: true, data: { tests: mapped, count: created.length } });
 });
 
 export const deleteTest = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
@@ -150,6 +198,16 @@ export const updateQuestion = asyncHandler(async (req: AuthRequest, res: Respons
 export const deleteQuestion = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   await Question.findByIdAndDelete(req.params.id);
   res.json({ success: true, data: { id: req.params.id } });
+});
+
+export const deleteQuestionsByTest = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const { testId } = req.params;
+  const test = await Test.findById(testId);
+  if (!test) throw new AppError('Test not found', 404);
+  const result = await Question.deleteMany({ testId });
+  await Test.findByIdAndUpdate(testId, { totalQuestions: 0, questionCount: 0 });
+  await ActivityLog.create({ userId: req.user!._id, action: 'delete_test_questions', resource: 'questions', resourceId: testId, details: { count: result.deletedCount || 0 } });
+  res.json({ success: true, data: { testId, count: result.deletedCount || 0 } });
 });
 
 export const bulkUploadQuestions = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {

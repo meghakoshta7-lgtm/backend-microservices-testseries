@@ -39,6 +39,7 @@ router.delete('/groups/:id', c.deleteGroup);
 // ─── TESTS ───
 router.get('/tests', c.getTests);
 router.post('/tests', c.createTest);
+router.post('/tests/bulk', c.bulkCreateTests);
 router.patch('/tests/:id', c.updateTest);
 router.post('/tests/:id/duplicate', c.duplicateTest);
 router.delete('/tests/:id', c.deleteTest);
@@ -47,6 +48,7 @@ router.delete('/tests/:id', c.deleteTest);
 router.get('/questions', c.getQuestions);
 router.post('/questions', c.createQuestion);
 router.patch('/questions/:id', c.updateQuestion);
+router.delete('/questions/by-test/:testId', c.deleteQuestionsByTest);
 router.delete('/questions/:id', c.deleteQuestion);
 router.post('/questions/bulk-upload', c.bulkUploadQuestions);
 router.post('/questions/bulk', c.bulkUploadQuestions);
