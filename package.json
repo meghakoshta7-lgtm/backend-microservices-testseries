@@ -58,10 +58,10 @@
     "morgan": "^1.10.0",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.8",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@types/multer": "^2.1.0"
   },
   "devDependencies": {
-    "@types/multer": "^2.1.0",
     "eslint": "^8.56.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"

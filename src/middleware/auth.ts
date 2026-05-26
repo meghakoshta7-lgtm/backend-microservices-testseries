@@ -5,6 +5,7 @@ import { User, IUser } from '@/models/User';
 
 export interface AuthRequest extends Request {
   user?: IUser;
+  file?: Express.Multer.File;
 }
 
 export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
