@@ -54,7 +54,7 @@ export const login = asyncHandler(async (req: AuthRequest, res: Response): Promi
   user.refreshToken = refreshToken;
   user.lastActiveDate = new Date();
   await user.save();
-  await sendLoginEmail(user).catch(error => console.error('[Email] Login notification failed:', error));
+  void sendLoginEmail(user).catch(error => console.error('[Email] Login notification failed:', error));
 
   const userResponse = {
     id: user._id,
@@ -125,7 +125,7 @@ export const googleLogin = asyncHandler(async (req: AuthRequest, res: Response):
   user.refreshToken = refreshToken;
   user.lastActiveDate = new Date();
   await user.save();
-  await sendLoginEmail(user).catch(error => console.error('[Email] Google login notification failed:', error));
+  void sendLoginEmail(user).catch(error => console.error('[Email] Google login notification failed:', error));
 
   const userResponse = {
     id: user._id,
