@@ -78,6 +78,12 @@ export const createPaymentSchema = z.object({
   }),
 });
 
+export const enrollTestSchema = z.object({
+  body: z.object({
+    testId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid test ID format'),
+  }),
+});
+
 export const paginationSchema = z.object({
   query: z.object({
     page: z.string().regex(/^\d+$/).transform(Number).default('1'),
