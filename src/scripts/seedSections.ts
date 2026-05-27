@@ -1,16 +1,16 @@
+import 'module-alias/register';
 import mongoose from 'mongoose';
+import { config } from '@/config';
 import { Test } from '@/models/Test';
-import { Section } from '@/models/Section';
 import { Question } from '@/models/Question';
 
 async function seedData() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/p2');
+    await mongoose.connect(config.mongodb.uri);
     console.log('✅ Connected to MongoDB');
 
     // Clean existing data
     await Test.deleteMany({});
-    await Section.deleteMany({});
     await Question.deleteMany({});
     console.log('🧹 Cleaned existing data');
 
@@ -34,44 +34,11 @@ async function seedData() {
     });
     console.log('✅ Test created:', test.name);
 
-    // Create Sections
-    const sections = await Section.insertMany([
-      {
-        testId: test._id,
-        name: 'Physics',
-        description: 'Classical Mechanics, Thermodynamics, Optics, and Modern Physics',
-        order: 0,
-        duration: 60,
-        totalQuestions: 25,
-        totalMarks: 100,
-        isActive: true,
-      },
-      {
-        testId: test._id,
-        name: 'Chemistry',
-        description: 'Inorganic, Organic, and Physical Chemistry',
-        order: 1,
-        duration: 60,
-        totalMarks: 100,
-        isActive: true,
-      },
-      {
-        testId: test._id,
-        name: 'Mathematics',
-        description: 'Algebra, Trigonometry, Calculus, and Coordinate Geometry',
-        order: 2,
-        duration: 60,
-        totalMarks: 100,
-        isActive: true,
-      },
-    ]);
-    console.log('✅ Created 3 sections');
-
     // Physics Questions
     const physicsQuestions = [
       {
         testId: test._id,
-        sectionId: sections[0]._id,
+
         text: 'A ball is thrown vertically upward with velocity 20 m/s. What is the maximum height reached? (g = 10 m/s²)',
         type: 'mcq',
         category: 'JEE',
@@ -94,7 +61,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[0]._id,
+
         text: 'The escape velocity from Earth is 11.2 km/s. What is the escape velocity from a planet of mass 2M and radius 2R (where M and R are Earth\'s mass and radius)?',
         type: 'mcq',
         category: 'JEE',
@@ -117,7 +84,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[0]._id,
+
         text: 'A wave is described by y = 0.02 sin(10πt - πx/2). The wavelength is:',
         type: 'mcq',
         category: 'JEE',
@@ -140,7 +107,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[0]._id,
+
         text: 'Two charges +q and -q are separated by distance 2a. Find the electric field at point P on the perpendicular bisector at distance d from the center.',
         type: 'mcq',
         category: 'JEE',
@@ -163,7 +130,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[0]._id,
+
         text: 'A capacitor is connected to a battery through a resistance. If the battery voltage is V, what fraction of the maximum charge is stored after 1 time constant τ?',
         type: 'mcq',
         category: 'JEE',
@@ -190,7 +157,7 @@ async function seedData() {
     const chemistryQuestions = [
       {
         testId: test._id,
-        sectionId: sections[1]._id,
+
         text: 'What is the pH of a 0.01 M HCl solution?',
         type: 'mcq',
         category: 'JEE',
@@ -213,7 +180,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[1]._id,
+
         text: 'Which of the following is the strongest oxidizing agent?',
         type: 'mcq',
         category: 'JEE',
@@ -236,7 +203,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[1]._id,
+
         text: 'The hybridization of carbon in benzene is:',
         type: 'mcq',
         category: 'JEE',
@@ -259,7 +226,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[1]._id,
+
         text: 'For a reaction at equilibrium: aA + bB ⇌ cC + dD, the equilibrium constant expression is:',
         type: 'mcq',
         category: 'JEE',
@@ -282,7 +249,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[1]._id,
+
         text: 'What is the molar mass of Ca(OH)₂? (Ca=40, O=16, H=1)',
         type: 'mcq',
         category: 'JEE',
@@ -309,7 +276,7 @@ async function seedData() {
     const mathQuestions = [
       {
         testId: test._id,
-        sectionId: sections[2]._id,
+
         text: 'Find the sum of the first n natural numbers: 1 + 2 + 3 + ... + n',
         type: 'mcq',
         category: 'JEE',
@@ -332,7 +299,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[2]._id,
+
         text: 'If sin θ = 3/5, and θ is in the second quadrant, what is cos θ?',
         type: 'mcq',
         category: 'JEE',
@@ -355,7 +322,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[2]._id,
+
         text: 'The derivative of x³ + 2x² - 5x + 3 is:',
         type: 'mcq',
         category: 'JEE',
@@ -378,7 +345,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[2]._id,
+
         text: 'Find the equation of the line passing through (2, 3) and (4, 7):',
         type: 'mcq',
         category: 'JEE',
@@ -401,7 +368,7 @@ async function seedData() {
       },
       {
         testId: test._id,
-        sectionId: sections[2]._id,
+
         text: 'If |A| = 2, |B| = 3, and A·B = 3, what is the angle between vectors A and B?',
         type: 'mcq',
         category: 'JEE',

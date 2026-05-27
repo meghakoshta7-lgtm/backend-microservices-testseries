@@ -324,6 +324,7 @@ export const getTestResult = asyncHandler(async (req: AuthRequest, res: Response
     return {
       _id: q._id.toString(),
       question: q.text,
+      type: q.type || 'mcq',
       options: Array.isArray(q.options) ? q.options.map(o => (typeof o === 'string' ? o : o.text || '')) : [],
       correctAnswer: getCorrectAnswerIndex(q) ?? 0,
       explanation: q.explanation,
