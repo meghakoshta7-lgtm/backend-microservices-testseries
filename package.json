@@ -28,6 +28,7 @@
     "seed": "tsx src/scripts/seed.ts",
     "seed-admin": "tsx src/scripts/seed-admin.ts",
     "seed-admin:prod": "node dist/scripts/seed-admin.js",
+    "seed-sections": "tsx src/scripts/seedSections.ts",
     "seed-jee-main-72": "tsx src/scripts/seed-jee-main-72.ts",
     "seed-jee-main-72:prod": "node dist/scripts/seed-jee-main-72.js",
     "seed-exams": "tsx src/scripts/seed-exams.ts",
