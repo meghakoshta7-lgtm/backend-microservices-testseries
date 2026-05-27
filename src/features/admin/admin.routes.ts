@@ -39,9 +39,6 @@ router.post('/groups', c.createGroup);
 router.patch('/groups/:id', c.updateGroup);
 router.delete('/groups/:id', c.deleteGroup);
 
-// ─── PDF Import (Nougat → Parse → JSON → Import) ───
-router.post('/pdf/import', upload.single('pdf'), c.importPdfQuestions);
-
 // ─── TESTS ───
 router.get('/tests', c.getTests);
 router.post('/tests', c.createTest);
