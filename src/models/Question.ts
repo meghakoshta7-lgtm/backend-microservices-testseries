@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IQuestion extends Document {
   testId?: mongoose.Types.ObjectId;
+  sectionId?: mongoose.Types.ObjectId;
   text: string;
   options: { label: string; text: string }[];
   correctAnswer: string | string[];
@@ -26,6 +27,7 @@ export interface IQuestion extends Document {
 const questionSchema = new Schema<IQuestion>(
   {
     testId: { type: Schema.Types.ObjectId, ref: 'Test' },
+    sectionId: { type: Schema.Types.ObjectId, ref: 'Section' },
     text: { type: String, required: true },
     options: [{
       label: { type: String, required: true },

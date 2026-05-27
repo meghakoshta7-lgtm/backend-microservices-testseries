@@ -49,6 +49,14 @@ router.delete('/tests/:id', c.deleteTest);
 router.post('/tests/pdf/ocr-extract', c.extractPdfWithOCR);
 router.get('/tests/pdf/ocr-check', c.checkOCRAvailability);
 
+// ─── SECTIONS ───
+router.get('/sections', c.getSections);
+router.post('/sections', c.createSection);
+router.patch('/sections/:id', c.updateSection);
+router.delete('/sections/:id', c.deleteSection);
+router.post('/sections/:sectionId/questions', c.assignQuestionsToSection);
+router.post('/sections/reorder', c.reorderSections);
+
 // ─── QUESTIONS ───
 router.get('/questions', c.getQuestions);
 router.post('/questions', c.createQuestion);
