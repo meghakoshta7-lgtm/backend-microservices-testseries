@@ -107,7 +107,8 @@ export const duplicateTest = asyncHandler(async (req: AuthRequest, res: Response
     difficulty: original.difficulty, duration: original.duration, totalQuestions: original.totalQuestions, totalMarks: original.totalMarks,
     passingMarks: original.passingMarks, negativeMarks: original.negativeMarks, isActive: false, isPremium: original.isPremium,
     price: original.price || 0, originalPrice: original.originalPrice || 0,
-    questionCount: original.questionCount, tags: original.tags, scheduledAt: original.scheduledAt, activeFrom: original.activeFrom, activeUntil: original.activeUntil,
+    questionCount: original.questionCount, tags: original.tags, sections: original.sections || [],
+    scheduledAt: original.scheduledAt, activeFrom: original.activeFrom, activeUntil: original.activeUntil,
   });
   const questions = await Question.find({ testId: original._id });
   if (questions.length) {
@@ -139,6 +140,7 @@ export const bulkCreateTests = asyncHandler(async (req: AuthRequest, res: Respon
     price: Number(item.price || 0),
     originalPrice: Number(item.originalPrice || 0),
     questionCount: Number(item.questionsCount || item.totalQuestions || 0),
+    sections: item.sections || [],
     scheduledAt: parseDate(item.scheduledAt),
     activeFrom: parseDate(item.activeFrom || item.scheduledAt),
     activeUntil: parseDate(item.activeUntil),
