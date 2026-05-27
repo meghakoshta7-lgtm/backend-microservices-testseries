@@ -109,7 +109,7 @@ export const getTest = asyncHandler(async (req: AuthRequest, res: Response): Pro
     return;
   }
 
-  const rawQuestions = await Question.find({ testId: id }).select('-correctAnswer -explanation -__v');
+  const rawQuestions = await Question.find({ testId: id, isActive: true }).select('-correctAnswer -explanation -__v');
   const questions = rawQuestions.map(q => ({
     _id: q._id,
     testId: q.testId,
@@ -162,7 +162,7 @@ export const submitTest = asyncHandler(async (req: AuthRequest, res: Response): 
     throw new AppError('Please purchase a plan to access this premium test', 403);
   }
 
-  const questions = await Question.find({ testId: id });
+  const questions = await Question.find({ testId: id, isActive: true });
 
   let correctAnswers = 0;
   let wrongAnswers = 0;
@@ -281,7 +281,7 @@ export const getTestResult = asyncHandler(async (req: AuthRequest, res: Response
     throw new AppError('Access denied', 403);
   }
 
-  const questions = await Question.find({ testId: result.testId });
+  const questions = await Question.find({ testId: result.testId, isActive: true });
   const test = await Test.findById(result.testId);
 
   const answersMap: Record<string, number> = {};
