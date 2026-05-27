@@ -113,6 +113,7 @@ export const getTest = asyncHandler(async (req: AuthRequest, res: Response): Pro
   const questions = rawQuestions.map(q => ({
     _id: q._id,
     testId: q.testId,
+    type: q.type,
     question: q.text,
     options: Array.isArray(q.options) ? q.options.map(o => (typeof o === 'string' ? o : o.text || '')) : [],
     difficulty: q.difficulty,

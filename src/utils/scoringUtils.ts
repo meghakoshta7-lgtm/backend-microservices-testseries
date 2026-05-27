@@ -29,9 +29,15 @@ export const getCorrectAnswerIndex = (question: { correctAnswer: unknown; option
 };
 
 export const isAnswerCorrect = (
-  question: { correctAnswer: unknown; options?: Array<{ label?: string; text?: string } | string> },
+  question: { correctAnswer: unknown; options?: Array<{ label?: string; text?: string } | string>; type?: string },
   userAnswer: unknown,
 ): boolean => {
+  if (question.type === 'integer') {
+    const correct = typeof question.correctAnswer === 'number' ? question.correctAnswer : Number(question.correctAnswer);
+    const user = typeof userAnswer === 'number' ? userAnswer : Number(userAnswer);
+    if (isNaN(correct) || isNaN(user)) return false;
+    return correct === user;
+  }
   const correctIndex = getCorrectAnswerIndex(question);
   if (correctIndex !== null) return Number(userAnswer) === correctIndex;
   return String(userAnswer ?? '').trim().toLowerCase() === String(question.correctAnswer ?? '').trim().toLowerCase();
