@@ -226,7 +226,7 @@ export const bulkUploadQuestions = asyncHandler(async (req: AuthRequest, res: Re
  * Expects base64-encoded PDF data in request body
  */
 export const extractPdfWithOCR = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-  const { pdfData, isMathContent = false } = req.body;
+  const { pdfData } = req.body;
 
   if (!pdfData || typeof pdfData !== 'string') {
     throw new AppError('PDF data is required as base64 string', 400);
@@ -242,7 +242,7 @@ export const extractPdfWithOCR = asyncHandler(async (req: AuthRequest, res: Resp
       throw new AppError('PDF data is empty', 400);
     }
 
-    const result = await ocrService.extractWithFallback(pdfBuffer, isMathContent);
+    const result = await ocrService.extractWithFallback(pdfBuffer);
 
     if (!result.success) {
       throw new AppError(`OCR extraction failed: ${result.error}`, 500);
