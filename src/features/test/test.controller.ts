@@ -431,12 +431,21 @@ export const getLatestTestResult = asyncHandler(async (req: AuthRequest, res: Re
   const { testId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(testId)) {
-    throw new AppError('Invalid test ID', 400);
+    throw new AppError('Invalid test ID format', 400);
+  }
+
+  // Check if test exists
+  const test = await Test.findById(testId);
+  if (!test) {
+    throw new AppError('Test not found', 404);
   }
 
   const result = await TestResult.findOne({ userId: req.user._id, testId }).sort({ completedAt: -1 });
   if (!result) {
-    throw new AppError('Test result not found', 404);
+    throw new AppError(
+      'No test result found. Please complete and submit the test first to view results.',
+      404
+    );
   }
 
   res.json({
