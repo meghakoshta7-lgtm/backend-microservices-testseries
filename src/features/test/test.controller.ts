@@ -328,6 +328,9 @@ export const getTestResult = asyncHandler(async (req: AuthRequest, res: Response
       subject: q.subject,
       topic: q.topic || '',
       negativeMarks: questionNegativeMarks,
+      image: q.image,
+      attachmentUrl: q.attachmentUrl,
+      attachmentType: q.attachmentType,
       userAnswer: userAnswer !== undefined ? Number(userAnswer) : null,
       isCorrect,
     };
