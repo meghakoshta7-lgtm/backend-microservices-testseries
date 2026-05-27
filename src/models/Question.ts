@@ -10,6 +10,8 @@ export interface IQuestion extends Document {
   category: string;
   subject: string;
   topic?: string;
+  section?: string;
+  sectionName?: string;
   difficulty: 'easy' | 'medium' | 'hard';
   marks: number;
   negativeMarks: number;
@@ -35,6 +37,8 @@ const questionSchema = new Schema<IQuestion>(
     category: { type: String, required: true },
     subject: { type: String, required: true },
     topic: { type: String, default: '' },
+    section: { type: String, default: 'General' },
+    sectionName: { type: String, default: 'General' },
     difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
     marks: { type: Number, default: 1 },
     negativeMarks: { type: Number, default: 0 },

@@ -1,5 +1,11 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+export interface ITestSection {
+  name: string;
+  questionCount: number;
+  subject?: string;
+}
+
 export interface ITest extends Document {
   name: string;
   description: string;
@@ -21,6 +27,7 @@ export interface ITest extends Document {
   thumbnail?: string;
   tags: string[];
   questionCount: number;
+  sections?: ITestSection[];
   scheduledAt?: Date;
   activeFrom?: Date;
   activeUntil?: Date;
@@ -50,6 +57,7 @@ const testSchema = new Schema<ITest>(
     thumbnail: { type: String, default: '' },
     tags: [{ type: String }],
     questionCount: { type: Number, default: 0 },
+    sections: [{ name: { type: String, required: true }, questionCount: { type: Number, default: 0 }, subject: { type: String } }],
     scheduledAt: { type: Date },
     activeFrom: { type: Date },
     activeUntil: { type: Date },

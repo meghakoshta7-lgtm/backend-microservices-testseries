@@ -21,7 +21,8 @@ const mapTest = async (t: any) => {
     passingScore: t.passingMarks || 0, totalPoints: t.totalMarks || 0, negativeMarks: t.negativeMarks || 0,
     status: t.isActive ? 'published' as const : 'draft' as const, isPremium: t.isPremium,
     price: t.price || 0, originalPrice: t.originalPrice || 0,
-    createdBy: '', scheduledAt: t.scheduledAt || null, activeFrom: t.activeFrom || null, activeUntil: t.activeUntil || null,
+    createdBy: '', sections: t.sections || [],
+    scheduledAt: t.scheduledAt || null, activeFrom: t.activeFrom || null, activeUntil: t.activeUntil || null,
     createdAt: t.createdAt, updatedAt: t.updatedAt,
   };
 };
@@ -68,7 +69,7 @@ export const createTest = asyncHandler(async (req: AuthRequest, res: Response): 
     totalMarks: req.body.totalPoints || 100, passingMarks: req.body.passingScore || 40, negativeMarks: req.body.negativeMarks || 0,
     isActive: req.body.status === 'published', isPremium: req.body.isPremium || false,
     price: req.body.price || 0, originalPrice: req.body.originalPrice || 0,
-    questionCount: req.body.questionsCount || 0,
+    questionCount: req.body.questionsCount || 0, sections: req.body.sections || [],
     scheduledAt: parseDate(req.body.scheduledAt),
     activeFrom: parseDate(req.body.activeFrom || req.body.scheduledAt),
     activeUntil: parseDate(req.body.activeUntil),
