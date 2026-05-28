@@ -190,6 +190,16 @@ export const getQuestions = asyncHandler(async (req: AuthRequest, res: Response)
 
 export const createQuestion = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const q = await Question.create(req.body);
+  if (q.testId) {
+    const count = await Question.countDocuments({ testId: q.testId, isActive: true });
+    await Test.findByIdAndUpdate(q.testId, { questionCount: count, totalQuestions: count });
+    if (q.section && q.section !== 'General') {
+      await Test.findOneAndUpdate(
+        { _id: q.testId, 'sections.name': q.section },
+        { $inc: { 'sections.$.questionCount': 1 } },
+      );
+    }
+  }
   res.status(201).json({ success: true, data: q });
 });
 
@@ -200,7 +210,17 @@ export const updateQuestion = asyncHandler(async (req: AuthRequest, res: Respons
 });
 
 export const deleteQuestion = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-  await Question.findByIdAndDelete(req.params.id);
+  const q = await Question.findByIdAndDelete(req.params.id);
+  if (q && q.testId) {
+    const count = await Question.countDocuments({ testId: q.testId, isActive: true });
+    await Test.findByIdAndUpdate(q.testId, { questionCount: count, totalQuestions: count });
+    if (q.section && q.section !== 'General') {
+      await Test.findOneAndUpdate(
+        { _id: q.testId, 'sections.name': q.section },
+        { $inc: { 'sections.$.questionCount': -1 } },
+      );
+    }
+  }
   res.json({ success: true, data: { id: req.params.id } });
 });
 
@@ -209,7 +229,7 @@ export const deleteQuestionsByTest = asyncHandler(async (req: AuthRequest, res: 
   const test = await Test.findById(testId);
   if (!test) throw new AppError('Test not found', 404);
   const result = await Question.deleteMany({ testId });
-  await Test.findByIdAndUpdate(testId, { totalQuestions: 0, questionCount: 0 });
+  await Test.findByIdAndUpdate(testId, { totalQuestions: 0, questionCount: 0, $set: { 'sections.$[].questionCount': 0 } });
   await ActivityLog.create({ userId: req.user!._id, action: 'delete_test_questions', resource: 'questions', resourceId: testId, details: { count: result.deletedCount || 0 } });
   res.json({ success: true, data: { testId, count: result.deletedCount || 0 } });
 });
@@ -220,6 +240,19 @@ export const bulkUploadQuestions = asyncHandler(async (req: AuthRequest, res: Re
   const created = await Question.insertMany(questions.map((q: any) => ({
     ...q, correctAnswer: typeof q.correctAnswer === 'string' ? q.correctAnswer : JSON.stringify(q.correctAnswer),
   })));
+  const testIds = [...new Set(created.filter(q => q.testId).map(q => q.testId.toString()))];
+  for (const testId of testIds) {
+    const count = await Question.countDocuments({ testId, isActive: true });
+    await Test.findByIdAndUpdate(testId, { questionCount: count, totalQuestions: count });
+  }
+  for (const q of created) {
+    if (q.testId && q.section && q.section !== 'General') {
+      await Test.findOneAndUpdate(
+        { _id: q.testId, 'sections.name': q.section },
+        { $inc: { 'sections.$.questionCount': 1 } },
+      );
+    }
+  }
   res.status(201).json({ success: true, data: { count: created.length } });
 });
 
