@@ -9,6 +9,7 @@ import paymentRoutes from '@/features/payment/payment.routes';
 import notificationRoutes from '@/features/notification/notification.routes';
 import settingsRoutes from '@/features/settings/settings.routes';
 import supportRoutes from '@/features/support/support.routes';
+import chatRoutes from '@/features/chat/chat.routes';
 import contentRoutes from '@/features/content/content.routes';
 import studyRoutes from '@/features/study/study.routes';
 import adminRoutes from '@/features/admin/admin.routes';
@@ -40,6 +41,7 @@ export const routeMounts = {
   support: { path: '/', router: supportRoutes },
   content: { path: '/', router: contentRoutes },
   study: { path: '/study', router: studyRoutes },
+  chat: { path: '/chat', router: chatRoutes },
   admin: { path: '/admin', router: adminRoutes },
   exam: { path: '/exam', router: examRoutes },
   subscription: { path: '/subscription', router: planRoutes },

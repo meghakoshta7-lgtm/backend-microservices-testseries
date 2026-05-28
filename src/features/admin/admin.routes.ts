@@ -14,6 +14,9 @@ router.post('/auth/admin-login', c.adminLogin);
 // All below require admin auth
 router.use(authenticate, authorize('super_admin', 'admin', 'editor', 'support'));
 
+// Delete all (generic - must be before /:id routes to avoid conflicts)
+router.delete('/delete-all/:resource', c.deleteAll);
+
 // Dashboard
 router.get('/dashboard', c.getDashboard);
 

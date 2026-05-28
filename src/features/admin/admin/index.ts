@@ -14,3 +14,4 @@ export * from './settings.controller';
 export * from './catalog.controller';
 export * from './engagement.controller';
 export * from './sections.controller';
+export * from './deleteAll.controller';
