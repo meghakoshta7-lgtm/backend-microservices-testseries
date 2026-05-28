@@ -1,7 +1,9 @@
-import axios from 'axios';
+import OpenAI from 'openai';
 
-const API_KEY = process.env.GEMINI_API_KEY;
-const MODEL = 'gemini-2.0-flash';
+const API_KEY = process.env.GROQ_API_KEY;
+const MODEL = 'llama-3.3-70b-versatile';
+
+let client: OpenAI | null = null;
 
 const SYSTEM_PROMPT = `You are a helpful doubt-solving assistant for the DreamBoost exam preparation platform. Answer user queries concisely and helpfully.
 
@@ -23,32 +25,30 @@ export const getChatResponse = async (message: string): Promise<string> => {
     return "I'm currently unavailable because no API key is configured. Please contact the administrator.";
   }
 
-  try {
-    const res = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
-      {
-        contents: [
-          {
-            parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${message}` }],
-          },
-        ],
-        generationConfig: {
-          maxOutputTokens: 500,
-          temperature: 0.7,
-        },
-      },
-      { timeout: 15000 },
-    );
+  if (!client) {
+    client = new OpenAI({ apiKey: API_KEY, baseURL: 'https://api.groq.com/openai/v1' });
+  }
 
-    return res.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+  try {
+    const completion = await client.chat.completions.create({
+      model: MODEL,
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: message },
+      ],
+      max_tokens: 500,
+      temperature: 0.7,
+    });
+
+    return completion.choices[0]?.message?.content?.trim()
       || "I couldn't generate a response. Please try rephrasing your question.";
   } catch (err: any) {
-    console.error('Gemini API error:', err?.response?.data || err.message);
-    if (err?.response?.status === 429) {
-      return 'The AI service is currently rate-limited. Please wait a moment and try again.';
+    console.error('Groq API error:', err);
+    if (err?.status === 401) {
+      return 'API key is invalid. Please contact the administrator.';
     }
-    if (err?.response?.status === 403) {
-      return 'API key is invalid or has insufficient permissions. Please contact the administrator.';
+    if (err?.status === 429) {
+      return 'The AI service is currently rate-limited. Please wait a moment and try again.';
     }
     return 'Sorry, I encountered an error while processing your request. Please try again later.';
   }
