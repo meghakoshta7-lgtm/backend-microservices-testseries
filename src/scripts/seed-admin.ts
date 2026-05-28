@@ -7,9 +7,7 @@ const adminEmail = process.env.ADMIN_EMAIL || 'admin@p2.com';
 const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456';
 const adminName = process.env.ADMIN_NAME || 'P2 Admin';
 
-const seedAdmin = async () => {
-  await mongoose.connect(config.mongodb.uri);
-
+export const seedAdmin = async () => {
   const existingUser = await User.findOne({ email: adminEmail }).select('+password');
 
   if (existingUser) {
@@ -38,7 +36,12 @@ const seedAdmin = async () => {
   console.log(`Admin user created: ${adminEmail}`);
 };
 
-seedAdmin()
+const run = async () => {
+  await mongoose.connect(config.mongodb.uri);
+  await seedAdmin();
+};
+
+run()
   .catch((error) => {
     console.error('Failed to seed admin user:', error);
     process.exitCode = 1;
