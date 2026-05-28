@@ -31,6 +31,7 @@ export interface ITest extends Document {
   scheduledAt?: Date;
   activeFrom?: Date;
   activeUntil?: Date;
+  badge?: { text: string; color: string };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -58,6 +59,10 @@ const testSchema = new Schema<ITest>(
     tags: [{ type: String }],
     questionCount: { type: Number, default: 0 },
     sections: [{ name: { type: String, required: true }, questionCount: { type: Number, default: 0 }, subject: { type: String } }],
+    badge: {
+      text: { type: String, default: '' },
+      color: { type: String, default: '' },
+    },
     scheduledAt: { type: Date },
     activeFrom: { type: Date },
     activeUntil: { type: Date },

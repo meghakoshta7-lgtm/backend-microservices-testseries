@@ -520,6 +520,7 @@ export const getMyTests = asyncHandler(async (req: AuthRequest, res: Response): 
     isPremium: t.isPremium,
     price: t.price,
     originalPrice: t.originalPrice,
+    badge: t.badge || null,
     activeFrom: t.activeFrom || null,
     activeUntil: t.activeUntil || null,
     isEnrolled: enrollmentMap.has(t._id.toString()),
