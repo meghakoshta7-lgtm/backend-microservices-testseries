@@ -36,16 +36,18 @@ export const seedAdmin = async () => {
   console.log(`Admin user created: ${adminEmail}`);
 };
 
-const run = async () => {
-  await mongoose.connect(config.mongodb.uri);
-  await seedAdmin();
-};
+if (require.main === module) {
+  const run = async () => {
+    await mongoose.connect(config.mongodb.uri);
+    await seedAdmin();
+  };
 
-run()
-  .catch((error) => {
-    console.error('Failed to seed admin user:', error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await mongoose.disconnect();
-  });
+  run()
+    .catch((error) => {
+      console.error('Failed to seed admin user:', error);
+      process.exitCode = 1;
+    })
+    .finally(async () => {
+      await mongoose.disconnect();
+    });
+}
