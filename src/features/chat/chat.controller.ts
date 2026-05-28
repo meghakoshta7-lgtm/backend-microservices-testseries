@@ -81,7 +81,7 @@ export const sendMessage = asyncHandler(async (req: AuthRequest, res: Response):
     message: message.trim(),
   });
 
-  const botReply = getBotResponse(message);
+  const botReply = await getBotResponse(message);
   const botMessage = await ChatMessage.create({
     userId: req.user._id,
     role: 'bot',
