@@ -63,7 +63,8 @@ export const getTests = asyncHandler(async (req: AuthRequest, res: Response): Pr
   const testsWithQuestionCount = await Promise.all(
     tests.map(async (test) => {
       const questionCount = await Question.countDocuments({ testId: test._id });
-      return { ...test.toObject(), questionCount };
+      const obj = test.toObject();
+      return { ...obj, badge: obj.badge || null, questionCount };
     })
   );
 
