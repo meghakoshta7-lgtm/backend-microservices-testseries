@@ -3,7 +3,7 @@ import { AppError } from '@/middleware/error';
 import { asyncHandler } from '@/middleware/asyncHandler';
 import { AuthRequest } from '@/middleware/auth';
 import { ChatMessage } from '@/models/ChatMessage';
-import { getChatResponse } from './chatGPT.service';
+import { getChatResponse } from './gemini.service';
 
 export const sendMessage = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.user) throw new AppError('Not authenticated', 401);
