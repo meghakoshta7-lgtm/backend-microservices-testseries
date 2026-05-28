@@ -92,7 +92,9 @@ export const updateTest = asyncHandler(async (req: AuthRequest, res: Response): 
   if ('scheduledAt' in req.body) updates.scheduledAt = parseDate(req.body.scheduledAt);
   if ('activeFrom' in req.body) updates.activeFrom = parseDate(req.body.activeFrom);
   if ('activeUntil' in req.body) updates.activeUntil = parseDate(req.body.activeUntil);
-  if ('badge' in req.body) updates.badge = req.body.badge && req.body.badge.text ? req.body.badge : undefined;
+  if ('badge' in req.body) {
+    updates.badge = req.body.badge && req.body.badge.text ? { text: req.body.badge.text, color: req.body.badge.color || 'red' } : undefined;
+  }
   const test = await Test.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
   if (!test) throw new AppError('Test not found', 404);
   const [ad] = await TestResult.aggregate([{ $match: { testId: test._id } }, { $group: { _id: null, count: { $sum: 1 }, avg: { $avg: '$score' } } }]);
