@@ -21,7 +21,7 @@ const mapTest = async (t: any) => {
     passingScore: t.passingMarks || 0, totalPoints: t.totalMarks || 0, negativeMarks: t.negativeMarks || 0,
     status: t.isActive ? 'published' as const : 'draft' as const, isPremium: t.isPremium,
     price: t.price || 0, originalPrice: t.originalPrice || 0,
-    createdBy: '', sections: t.sections || [],
+    badge: t.badge || null, createdBy: '', sections: t.sections || [],
     scheduledAt: t.scheduledAt || null, activeFrom: t.activeFrom || null, activeUntil: t.activeUntil || null,
     createdAt: t.createdAt, updatedAt: t.updatedAt,
   };
@@ -70,6 +70,7 @@ export const createTest = asyncHandler(async (req: AuthRequest, res: Response): 
     isActive: req.body.status === 'published', isPremium: req.body.isPremium || false,
     price: req.body.price || 0, originalPrice: req.body.originalPrice || 0,
     questionCount: req.body.questionsCount || 0, sections: req.body.sections || [],
+    badge: req.body.badge || undefined,
     scheduledAt: parseDate(req.body.scheduledAt),
     activeFrom: parseDate(req.body.activeFrom || req.body.scheduledAt),
     activeUntil: parseDate(req.body.activeUntil),
@@ -107,7 +108,7 @@ export const duplicateTest = asyncHandler(async (req: AuthRequest, res: Response
     difficulty: original.difficulty, duration: original.duration, totalQuestions: original.totalQuestions, totalMarks: original.totalMarks,
     passingMarks: original.passingMarks, negativeMarks: original.negativeMarks, isActive: false, isPremium: original.isPremium,
     price: original.price || 0, originalPrice: original.originalPrice || 0,
-    questionCount: original.questionCount, tags: original.tags, sections: original.sections || [],
+    badge: original.badge, questionCount: original.questionCount, tags: original.tags, sections: original.sections || [],
     scheduledAt: original.scheduledAt, activeFrom: original.activeFrom, activeUntil: original.activeUntil,
   });
   const questions = await Question.find({ testId: original._id });
@@ -140,6 +141,7 @@ export const bulkCreateTests = asyncHandler(async (req: AuthRequest, res: Respon
     price: Number(item.price || 0),
     originalPrice: Number(item.originalPrice || 0),
     questionCount: Number(item.questionsCount || item.totalQuestions || 0),
+    badge: item.badge,
     sections: item.sections || [],
     scheduledAt: parseDate(item.scheduledAt),
     activeFrom: parseDate(item.activeFrom || item.scheduledAt),
