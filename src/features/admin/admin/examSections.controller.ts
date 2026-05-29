@@ -14,14 +14,18 @@ export const getExamSections = asyncHandler(async (req: AuthRequest, res: Respon
 
 export const createExamSection = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const { ExamSection } = require('@/models/ExamSection');
-  const section = await ExamSection.create(req.body);
+  const body = { ...req.body };
+  if (body.categoryId === '' || body.categoryId === 'null') body.categoryId = null;
+  const section = await ExamSection.create(body);
   await ActivityLog.create({ userId: req.user?._id, action: 'create_exam_section', resource: 'ExamSection', details: { title: section.title } });
   res.status(201).json({ success: true, message: 'Section created', data: section });
 });
 
 export const updateExamSection = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const { ExamSection } = require('@/models/ExamSection');
-  const section = await ExamSection.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const body = { ...req.body };
+  if (body.categoryId === '' || body.categoryId === 'null') body.categoryId = null;
+  const section = await ExamSection.findByIdAndUpdate(req.params.id, body, { new: true, runValidators: true });
   if (!section) throw new AppError('Section not found', 404);
   await ActivityLog.create({ userId: req.user?._id, action: 'update_exam_section', resource: 'ExamSection', details: { id: req.params.id } });
   res.json({ success: true, message: 'Section updated', data: section });

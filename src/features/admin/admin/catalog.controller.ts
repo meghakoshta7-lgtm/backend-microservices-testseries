@@ -50,14 +50,20 @@ export const getExams = asyncHandler(async (req: AuthRequest, res: Response): Pr
 
 export const createExam = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const { Exam } = require('@/models/Exam');
-  const exam = await Exam.create(req.body);
+  const body = { ...req.body };
+  if (body.sectionId === '' || body.sectionId === 'null') body.sectionId = null;
+  if (body.categoryId === '' || body.categoryId === 'null') body.categoryId = null;
+  const exam = await Exam.create(body);
   await ActivityLog.create({ userId: req.user?._id, action: 'create_exam', resource: 'Exam', details: { name: exam.name } });
   res.status(201).json({ success: true, message: 'Exam created', data: exam });
 });
 
 export const updateExam = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const { Exam } = require('@/models/Exam');
-  const exam = await Exam.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const body = { ...req.body };
+  if (body.sectionId === '' || body.sectionId === 'null') body.sectionId = null;
+  if (body.categoryId === '' || body.categoryId === 'null') body.categoryId = null;
+  const exam = await Exam.findByIdAndUpdate(req.params.id, body, { new: true, runValidators: true });
   if (!exam) throw new AppError('Exam not found', 404);
   await ActivityLog.create({ userId: req.user?._id, action: 'update_exam', resource: 'Exam', details: { id: req.params.id } });
   res.json({ success: true, message: 'Exam updated', data: exam });
