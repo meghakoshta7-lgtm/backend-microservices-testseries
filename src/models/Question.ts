@@ -7,7 +7,7 @@ export interface IQuestion extends Document {
   options: { label: string; text: string }[];
   correctAnswer: string | string[];
   explanation?: any;
-  type: 'mcq' | 'single' | 'multiple' | 'subjective' | 'descriptive' | 'integer';
+  type: 'mcq' | 'single' | 'multiple' | 'subjective' | 'descriptive' | 'integer' | 'true_false';
   category: string;
   subject: string;
   topic?: string;
@@ -35,7 +35,7 @@ const questionSchema = new Schema<IQuestion>(
     }],
     correctAnswer: { type: Schema.Types.Mixed, required: true },
     explanation: { type: Schema.Types.Mixed, default: '' },
-    type: { type: String, enum: ['mcq', 'single', 'multiple', 'subjective', 'descriptive', 'integer'], default: 'mcq' },
+    type: { type: String, enum: ['mcq', 'single', 'multiple', 'subjective', 'descriptive', 'integer', 'true_false'], default: 'mcq' },
     category: { type: String, required: true },
     subject: { type: String, required: true },
     topic: { type: String, default: '' },
