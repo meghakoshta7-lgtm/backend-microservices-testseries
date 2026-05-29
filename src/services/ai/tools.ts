@@ -6,6 +6,7 @@ import { Test } from '@/models/Test';
 import { Subject } from '@/models/Subject';
 import { Topic } from '@/models/Topic';
 import { User } from '@/models/User';
+import { Question } from '@/models/Question';
 
 interface ToolDef {
   type: 'function';
@@ -366,6 +367,337 @@ export const tools: ToolDef[] = [
       const users = await User.find().sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean();
       const total = await User.countDocuments();
       return { users: users.map((u: any) => ({ _id: u._id, name: u.name, email: u.email, role: u.role, isActive: u.isActive })), total, page };
+    },
+  },
+
+  // ─── SUBJECTS ───
+  {
+    type: 'function',
+    function: {
+      name: 'subject_list',
+      description: 'List subjects, optionally filtered by categoryId',
+      parameters: {
+        type: 'object',
+        properties: { categoryId: { type: 'string', description: 'Filter by category ID' } },
+        required: [],
+      },
+    },
+    handler: async (args) => {
+      const filter: any = {};
+      if (args.categoryId) filter.categoryId = toId(args.categoryId);
+      const subjects = await Subject.find(filter).populate('categoryId', 'name').sort({ order: 1 }).lean();
+      return subjects.map((s: any) => ({ _id: s._id, name: s.name, icon: s.icon, category: s.categoryId?.name, order: s.order }));
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'subject_create',
+      description: 'Create a new subject under a category',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Subject name' },
+          categoryId: { type: 'string', description: 'Category ID' },
+          icon: { type: 'string', default: 'BookOpen' },
+          color: { type: 'string', default: '#3273e6' },
+          description: { type: 'string', default: '' },
+          order: { type: 'number', default: 0 },
+        },
+        required: ['name', 'categoryId'],
+      },
+    },
+    handler: async (args) => {
+      const existing = await Subject.findOne({ name: args.name, categoryId: args.categoryId });
+      if (existing) throw new Error(`Subject "${args.name}" already exists in this category`);
+      const subject = await Subject.create(args);
+      return { _id: subject._id, name: subject.name };
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'subject_update',
+      description: 'Update a subject',
+      parameters: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', description: 'Subject ID' },
+          name: { type: 'string' }, icon: { type: 'string' }, color: { type: 'string' },
+          description: { type: 'string' }, order: { type: 'number' },
+        },
+        required: ['_id'],
+      },
+    },
+    handler: async (args) => {
+      const { _id, ...data } = args;
+      const subject = await Subject.findByIdAndUpdate(_id, data, { new: true, runValidators: true });
+      if (!subject) throw new Error('Subject not found');
+      return { _id: subject._id, name: subject.name };
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'subject_delete',
+      description: 'Delete a subject (fails if topics exist under it)',
+      parameters: {
+        type: 'object',
+        properties: { _id: { type: 'string', description: 'Subject ID' } },
+        required: ['_id'],
+      },
+    },
+    handler: async (args) => {
+      const topicCount = await Topic.countDocuments({ subjectId: args._id });
+      if (topicCount > 0) throw new Error(`Cannot delete: ${topicCount} topic(s) exist under this subject. Delete topics first.`);
+      const subject = await Subject.findByIdAndDelete(args._id);
+      if (!subject) throw new Error('Subject not found');
+      return { deleted: true, name: subject.name };
+    },
+  },
+
+  // ─── TOPICS ───
+  {
+    type: 'function',
+    function: {
+      name: 'topic_list',
+      description: 'List topics, optionally filtered by subjectId',
+      parameters: {
+        type: 'object',
+        properties: { subjectId: { type: 'string', description: 'Filter by subject ID' } },
+        required: [],
+      },
+    },
+    handler: async (args) => {
+      const filter: any = {};
+      if (args.subjectId) filter.subjectId = toId(args.subjectId);
+      const topics = await Topic.find(filter).populate('subjectId', 'name').sort({ order: 1 }).lean();
+      return topics.map((t: any) => ({ _id: t._id, name: t.name, slug: t.slug, subject: t.subjectId?.name, order: t.order }));
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'topic_create',
+      description: 'Create a new topic under a subject',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Topic name' },
+          slug: { type: 'string', description: 'URL slug (lowercase, hyphens)' },
+          subjectId: { type: 'string', description: 'Subject ID' },
+          description: { type: 'string', default: '' },
+          order: { type: 'number', default: 0 },
+        },
+        required: ['name', 'slug', 'subjectId'],
+      },
+    },
+    handler: async (args) => {
+      const topic = await Topic.create(args);
+      return { _id: topic._id, name: topic.name, slug: topic.slug };
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'topic_update',
+      description: 'Update a topic',
+      parameters: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', description: 'Topic ID' },
+          name: { type: 'string' }, slug: { type: 'string' },
+          description: { type: 'string' }, order: { type: 'number' },
+        },
+        required: ['_id'],
+      },
+    },
+    handler: async (args) => {
+      const { _id, ...data } = args;
+      const topic = await Topic.findByIdAndUpdate(_id, data, { new: true, runValidators: true });
+      if (!topic) throw new Error('Topic not found');
+      return { _id: topic._id, name: topic.name };
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'topic_delete',
+      description: 'Delete a topic',
+      parameters: {
+        type: 'object',
+        properties: { _id: { type: 'string', description: 'Topic ID' } },
+        required: ['_id'],
+      },
+    },
+    handler: async (args) => {
+      const topic = await Topic.findByIdAndDelete(args._id);
+      if (!topic) throw new Error('Topic not found');
+      return { deleted: true, name: topic.name };
+    },
+  },
+
+  // ─── QUESTIONS ───
+  {
+    type: 'function',
+    function: {
+      name: 'question_list',
+      description: 'List questions with optional filters',
+      parameters: {
+        type: 'object',
+        properties: {
+          testId: { type: 'string', description: 'Filter by test ID' },
+          category: { type: 'string', description: 'Filter by category/exam name' },
+          subject: { type: 'string', description: 'Filter by subject name' },
+          topic: { type: 'string', description: 'Filter by topic name' },
+          search: { type: 'string', description: 'Search in question text' },
+          page: { type: 'number', default: 1 },
+          limit: { type: 'number', default: 20 },
+        },
+        required: [],
+      },
+    },
+    handler: async (args) => {
+      const query: Record<string, any> = {};
+      if (args.testId) query.testId = toId(args.testId);
+      if (args.category) query.category = args.category;
+      if (args.subject) query.subject = args.subject;
+      if (args.topic) query.topic = args.topic;
+      if (args.search) query.text = { $regex: args.search, $options: 'i' };
+      const page = args.page || 1;
+      const limit = args.limit || 20;
+      const [questions, total] = await Promise.all([
+        Question.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+        Question.countDocuments(query),
+      ]);
+      return { questions: questions.map((q: any) => ({ _id: q._id, text: q.text?.substring(0, 100), type: q.type, subject: q.subject, topic: q.topic, difficulty: q.difficulty, marks: q.marks })), total, page, totalPages: Math.ceil(total / limit) };
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'question_create',
+      description: 'Create a single question',
+      parameters: {
+        type: 'object',
+        properties: {
+          testId: { type: 'string', description: 'Test ID (optional)' },
+          text: { type: 'string', description: 'Question text' },
+          options: { type: 'array', items: { type: 'object', properties: { label: { type: 'string' }, text: { type: 'string' } }, required: ['label', 'text'] }, description: 'MCQ options' },
+          correctAnswer: { type: 'string', description: 'Correct answer label(s) — single letter like "A" or comma-separated "A,B"' },
+          type: { type: 'string', enum: ['mcq', 'single', 'multiple', 'subjective', 'descriptive', 'integer'], default: 'mcq' },
+          category: { type: 'string', description: 'Category/exam name' },
+          subject: { type: 'string', description: 'Subject name' },
+          topic: { type: 'string', description: 'Topic name (optional)' },
+          difficulty: { type: 'string', enum: ['easy', 'medium', 'hard'], default: 'medium' },
+          marks: { type: 'number', default: 1 },
+          negativeMarks: { type: 'number', default: 0 },
+        },
+        required: ['text', 'category', 'subject'],
+      },
+    },
+    handler: async (args) => {
+      const q = await Question.create(args);
+      if (q.testId) {
+        const count = await Question.countDocuments({ testId: q.testId, isActive: true });
+        await Test.findByIdAndUpdate(q.testId, { questionCount: count, totalQuestions: count });
+      }
+      return { _id: q._id, text: q.text?.substring(0, 80), type: q.type };
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'question_update',
+      description: 'Update a question',
+      parameters: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', description: 'Question ID' },
+          text: { type: 'string' }, correctAnswer: { type: 'string' },
+          options: { type: 'array', items: { type: 'object', properties: { label: { type: 'string' }, text: { type: 'string' } } } },
+          type: { type: 'string', enum: ['mcq', 'single', 'multiple', 'subjective', 'descriptive', 'integer'] },
+          subject: { type: 'string' }, topic: { type: 'string' },
+          difficulty: { type: 'string', enum: ['easy', 'medium', 'hard'] },
+          marks: { type: 'number' }, negativeMarks: { type: 'number' },
+        },
+        required: ['_id'],
+      },
+    },
+    handler: async (args) => {
+      const { _id, ...data } = args;
+      const q = await Question.findByIdAndUpdate(_id, data, { new: true, runValidators: true });
+      if (!q) throw new Error('Question not found');
+      return { _id: q._id, text: q.text?.substring(0, 80) };
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'question_delete',
+      description: 'Delete a question',
+      parameters: {
+        type: 'object',
+        properties: { _id: { type: 'string', description: 'Question ID' } },
+        required: ['_id'],
+      },
+    },
+    handler: async (args) => {
+      const q = await Question.findByIdAndDelete(args._id);
+      if (!q) throw new Error('Question not found');
+      if (q.testId) {
+        const count = await Question.countDocuments({ testId: q.testId, isActive: true });
+        await Test.findByIdAndUpdate(q.testId, { questionCount: count, totalQuestions: count });
+      }
+      return { deleted: true };
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'question_bulk_import',
+      description: 'Bulk import questions from a JSON array. Each question can have: text, options (array of {label, text}), correctAnswer, type, category, subject, topic, difficulty, marks, negativeMarks, testId.',
+      parameters: {
+        type: 'object',
+        properties: {
+          questions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                text: { type: 'string' },
+                options: { type: 'array', items: { type: 'object', properties: { label: { type: 'string' }, text: { type: 'string' } } } },
+                correctAnswer: { type: 'string' },
+                type: { type: 'string', enum: ['mcq', 'single', 'multiple', 'subjective', 'descriptive', 'integer'] },
+                category: { type: 'string' },
+                subject: { type: 'string' },
+                topic: { type: 'string' },
+                difficulty: { type: 'string', enum: ['easy', 'medium', 'hard'] },
+                marks: { type: 'number' },
+                negativeMarks: { type: 'number' },
+                testId: { type: 'string' },
+              },
+              required: ['text', 'category', 'subject'],
+            },
+            description: 'Array of question objects to import',
+          },
+        },
+        required: ['questions'],
+      },
+    },
+    handler: async (args) => {
+      const { questions } = args;
+      if (!Array.isArray(questions) || questions.length === 0) throw new Error('Questions array is required');
+      const created = await Question.insertMany(questions.map((q: any) => ({
+        ...q,
+        correctAnswer: typeof q.correctAnswer === 'string' ? q.correctAnswer : JSON.stringify(q.correctAnswer),
+      })));
+      const testIds = [...new Set(created.filter((q: any) => q.testId).map((q: any) => q.testId.toString()))];
+      for (const testId of testIds) {
+        const count = await Question.countDocuments({ testId, isActive: true });
+        await Test.findByIdAndUpdate(testId, { questionCount: count, totalQuestions: count });
+      }
+      return { count: created.length, message: `Successfully imported ${created.length} questions` };
     },
   },
 ];
