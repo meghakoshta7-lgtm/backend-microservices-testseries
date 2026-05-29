@@ -132,6 +132,7 @@ router.get('/settings', c.getSettings);
 router.patch('/settings', c.updateSettings);
 
 // ─── AI ASSISTANT ───
+router.get('/ai/status', c.aiStatus);
 router.post('/ai/chat', c.aiChat);
 
 // ─── EXAM CATEGORIES ───
