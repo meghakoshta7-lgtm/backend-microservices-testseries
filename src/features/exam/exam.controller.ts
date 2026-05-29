@@ -24,7 +24,7 @@ export const getExamsByCategory = asyncHandler(async (req: AuthRequest, res: Res
   if (!category) {
     return res.status(404).json({ success: false, message: 'Category not found' });
   }
-  const exams = await Exam.find({ categoryId: category._id, isActive: true }).sort({ order: 1 });
+  const exams = await Exam.find({ categoryId: category._id, isActive: true }).populate('sectionId', 'title subtitle icon order').sort({ order: 1 });
   const sections = await ExamSection.find({ categoryId: category._id }).sort({ order: 1 });
   res.json({ success: true, data: { category, exams, sections } });
 });
