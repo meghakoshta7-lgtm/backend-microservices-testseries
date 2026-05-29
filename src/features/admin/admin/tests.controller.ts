@@ -16,7 +16,7 @@ const mapTest = async (t: any) => {
   const questionCount = await Question.countDocuments({ testId: t._id, isActive: true });
   return {
     id: t._id, title: t.name, description: t.description, category: t.category, subject: t.subject,
-    testType: t.testType || 'subject', chapter: t.chapter || '', difficulty: t.difficulty,
+    testType: t.testType || 'subject', class: t.class || 'all', chapter: t.chapter || '', difficulty: t.difficulty,
     questionsCount: questionCount || t.totalQuestions || t.questionCount || 0, duration: t.duration,
     passingScore: t.passingMarks || 0, totalPoints: t.totalMarks || 0, negativeMarks: t.negativeMarks || 0,
     status: t.isActive ? 'published' as const : 'draft' as const, isPremium: t.isPremium,
@@ -64,7 +64,7 @@ export const getTests = asyncHandler(async (req: AuthRequest, res: Response): Pr
 export const createTest = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const test = await Test.create({
     name: req.body.title, description: req.body.description || '', category: req.body.category, subject: req.body.subject || req.body.category || '',
-    testType: normalizeTestType(req.body.testType), chapter: req.body.chapter || '',
+    testType: normalizeTestType(req.body.testType), class: req.body.class || 'all', chapter: req.body.chapter || '',
     difficulty: req.body.difficulty || 'medium', duration: req.body.duration || 60, totalQuestions: req.body.questionsCount || 0,
     totalMarks: req.body.totalPoints || 100, passingMarks: req.body.passingScore || 40, negativeMarks: req.body.negativeMarks || 0,
     isActive: req.body.status === 'published', isPremium: req.body.isPremium || false,
@@ -107,7 +107,7 @@ export const duplicateTest = asyncHandler(async (req: AuthRequest, res: Response
   if (!original) throw new AppError('Test not found', 404);
   const dup = await Test.create({
     name: `${original.name} (Copy)`, description: original.description, category: original.category, subject: original.subject,
-    testType: original.testType, chapter: original.chapter,
+    testType: original.testType, class: original.class || 'all', chapter: original.chapter,
     difficulty: original.difficulty, duration: original.duration, totalQuestions: original.totalQuestions, totalMarks: original.totalMarks,
     passingMarks: original.passingMarks, negativeMarks: original.negativeMarks, isActive: false, isPremium: original.isPremium,
     price: original.price || 0, originalPrice: original.originalPrice || 0,
@@ -132,6 +132,7 @@ export const bulkCreateTests = asyncHandler(async (req: AuthRequest, res: Respon
     category: item.category,
     subject: item.subject || item.category,
     testType: normalizeTestType(item.testType),
+    class: item.class || 'all',
     chapter: item.chapter || '',
     difficulty: item.difficulty || 'medium',
     duration: Number(item.duration || 60),
