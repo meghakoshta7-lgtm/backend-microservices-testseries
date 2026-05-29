@@ -48,7 +48,12 @@ export const getExamDetail = asyncHandler(async (req: AuthRequest, res: Response
     baseQuery.$or = [{ class: classFilter }, { class: 'all' }];
   }
   if (subCategoryFilter) {
-    baseQuery.subCategory = subCategoryFilter;
+    baseQuery.$or = [
+      { subCategory: subCategoryFilter },
+      { subCategory: { $exists: false } },
+      { subCategory: null },
+      { subCategory: '' },
+    ];
   }
   const availableQuery = getAvailableTestQuery(baseQuery);
   const testCount = await Test.countDocuments(availableQuery);
