@@ -14,6 +14,7 @@ export interface IExam extends Document {
   bannerUrl: string;
   isActive: boolean;
   order: number;
+  group?: 'national' | 'state' | '';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +34,7 @@ const examSchema = new Schema<IExam>(
     bannerUrl: { type: String, default: '' },
     isActive: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
+    group: { type: String, enum: ['national', 'state', ''], default: '' },
   },
   { timestamps: true }
 );
