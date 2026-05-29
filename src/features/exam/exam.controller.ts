@@ -37,6 +37,12 @@ export const getExamDetail = asyncHandler(async (req: AuthRequest, res: Response
   }
   const classFilter = req.query.class;
   const subCategoryFilter = req.query.subCategory;
+
+  // Debug: find all tests for this exam name (before availability filter)
+  const allTestsForExam = await Test.find({ category: exam.name })
+    .select('name category subCategory isActive isPremium testType activeFrom activeUntil')
+    .lean();
+
   const baseQuery: any = { category: exam.name };
   if (classFilter === '11' || classFilter === '12') {
     baseQuery.$or = [{ class: classFilter }, { class: 'all' }];
@@ -58,7 +64,7 @@ export const getExamDetail = asyncHandler(async (req: AuthRequest, res: Response
       return { ...test.toObject(), questionCount };
     })
   );
-  res.json({ success: true, data: { ...exam.toObject(), testCount, freeTestCount, premiumTestCount, tests: testsWithQuestionCount } });
+  res.json({ success: true, data: { ...exam.toObject(), testCount, freeTestCount, premiumTestCount, tests: testsWithQuestionCount, _debug: { examName: exam.name, subCategory: subCategoryFilter, allTestsForExam, query: baseQuery } } });
 });
 
 export const getHomeData = asyncHandler(async (req: AuthRequest, res: Response) => {
