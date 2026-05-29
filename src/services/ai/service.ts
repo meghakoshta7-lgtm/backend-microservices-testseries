@@ -30,7 +30,7 @@ Rules:
 - When creating something, confirm what was created with its name/ID.
 - Current date: ${new Date().toISOString().split('T')[0]}`;
 
-async function callLLM(messages: any[], toolChoice?: 'auto' | 'none') {
+async function callLLM(messages: any[], toolChoice?: 'auto' | 'none'): Promise<any> {
   const body: Record<string, any> = {
     model: MODEL,
     messages,
