@@ -16,6 +16,7 @@ export interface IExam extends Document {
   order: number;
   sectionId?: mongoose.Types.ObjectId;
   group?: 'national' | 'state' | '';
+  subCategories?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +38,7 @@ const examSchema = new Schema<IExam>(
     order: { type: Number, default: 0 },
     sectionId: { type: Schema.Types.ObjectId, ref: 'ExamSection', default: null },
     group: { type: String, enum: ['national', 'state', ''], default: '' },
+    subCategories: [{ type: String, trim: true }],
   },
   { timestamps: true }
 );
