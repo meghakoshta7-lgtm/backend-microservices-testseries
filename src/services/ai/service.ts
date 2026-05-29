@@ -68,48 +68,52 @@ export async function processChatMessage(userMessage: string, history: any[] = [
     return { reply: '❌ AI Assistant is not configured. Set `AI_API_KEY` in environment variables.', role: 'assistant' };
   }
 
-  const messages: any[] = [
-    { role: 'system', content: systemPrompt },
-    ...history.slice(-20),
-    { role: 'user', content: userMessage },
-  ];
+  try {
+    const messages: any[] = [
+      { role: 'system', content: systemPrompt },
+      ...history.slice(-20),
+      { role: 'user', content: userMessage },
+    ];
 
-  for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const data = await callLLM(messages);
-    const choice = data.choices?.[0];
-    if (!choice) throw new Error('No response from AI');
+    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      const data = await callLLM(messages);
+      const choice = data.choices?.[0];
+      if (!choice) throw new Error('No response from AI');
 
-    const { message } = choice;
-    messages.push(message);
+      const { message } = choice;
+      messages.push(message);
 
-    const toolCalls = message.tool_calls;
-    if (!toolCalls || toolCalls.length === 0) {
-      return { reply: message.content || 'Done.', role: 'assistant' };
+      const toolCalls = message.tool_calls;
+      if (!toolCalls || toolCalls.length === 0) {
+        return { reply: message.content || 'Done.', role: 'assistant' };
+      }
+
+      for (const tc of toolCalls) {
+        const tool = findTool(tc.function.name);
+        if (!tool) {
+          messages.push({ role: 'tool', tool_call_id: tc.id, content: `Unknown tool: ${tc.function.name}` });
+          continue;
+        }
+
+        let args: Record<string, any>;
+        try {
+          args = JSON.parse(tc.function.arguments);
+        } catch {
+          messages.push({ role: 'tool', tool_call_id: tc.id, content: 'Invalid arguments JSON' });
+          continue;
+        }
+
+        try {
+          const result = await tool.handler(args);
+          messages.push({ role: 'tool', tool_call_id: tc.id, content: typeof result === 'string' ? result : JSON.stringify(result) });
+        } catch (err: any) {
+          messages.push({ role: 'tool', tool_call_id: tc.id, content: `Error: ${err.message}` });
+        }
+      }
     }
 
-    for (const tc of toolCalls) {
-      const tool = findTool(tc.function.name);
-      if (!tool) {
-        messages.push({ role: 'tool', tool_call_id: tc.id, content: `Unknown tool: ${tc.function.name}` });
-        continue;
-      }
-
-      let args: Record<string, any>;
-      try {
-        args = JSON.parse(tc.function.arguments);
-      } catch {
-        messages.push({ role: 'tool', tool_call_id: tc.id, content: 'Invalid arguments JSON' });
-        continue;
-      }
-
-      try {
-        const result = await tool.handler(args);
-        messages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
-      } catch (err: any) {
-        messages.push({ role: 'tool', tool_call_id: tc.id, content: `Error: ${err.message}` });
-      }
-    }
+    return { reply: 'I completed the operation but it required too many steps. Please check the results.', role: 'assistant' };
+  } catch (err: any) {
+    return { reply: `❌ Error: ${err.message}`, role: 'assistant' };
   }
-
-  return { reply: 'I completed the operation but it required too many steps. Please check the results.', role: 'assistant' };
 }
