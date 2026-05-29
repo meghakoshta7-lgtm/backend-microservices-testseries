@@ -64,7 +64,7 @@ export const getTests = asyncHandler(async (req: AuthRequest, res: Response): Pr
 export const createTest = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   const test = await Test.create({
     name: req.body.title, description: req.body.description || '', category: req.body.category, subject: req.body.subject || req.body.category || '',
-    testType: normalizeTestType(req.body.testType), class: req.body.class || 'all', chapter: req.body.chapter || '',
+    subCategory: req.body.subCategory || '', testType: normalizeTestType(req.body.testType), class: req.body.class || 'all', chapter: req.body.chapter || '',
     difficulty: req.body.difficulty || 'medium', duration: req.body.duration || 60, totalQuestions: req.body.questionsCount || 0,
     totalMarks: req.body.totalPoints || 100, passingMarks: req.body.passingScore || 40, negativeMarks: req.body.negativeMarks || 0,
     isActive: req.body.status === 'published', isPremium: req.body.isPremium || false,

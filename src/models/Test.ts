@@ -11,6 +11,7 @@ export interface ITest extends Document {
   description: string;
   category: string;
   subject: string;
+  subCategory?: string;
   testType: 'subject' | 'chapter' | 'full';
   class?: '11' | '12' | 'all';
   chapter?: string;
@@ -43,6 +44,7 @@ const testSchema = new Schema<ITest>(
     description: { type: String, default: '' },
     category: { type: String, required: true },
     subject: { type: String, required: true },
+    subCategory: { type: String, default: '' },
     testType: { type: String, enum: ['subject', 'chapter', 'full'], default: 'subject' },
     class: { type: String, enum: ['11', '12', 'all'], default: 'all' },
     chapter: { type: String, default: '' },

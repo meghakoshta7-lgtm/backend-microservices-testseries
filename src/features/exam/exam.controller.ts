@@ -36,16 +36,20 @@ export const getExamDetail = asyncHandler(async (req: AuthRequest, res: Response
     return res.status(404).json({ success: false, message: 'Exam not found' });
   }
   const classFilter = req.query.class;
+  const subCategoryFilter = req.query.subCategory;
   const baseQuery: any = { category: exam.name };
   if (classFilter === '11' || classFilter === '12') {
     baseQuery.$or = [{ class: classFilter }, { class: 'all' }];
+  }
+  if (subCategoryFilter) {
+    baseQuery.subCategory = subCategoryFilter;
   }
   const availableQuery = getAvailableTestQuery(baseQuery);
   const testCount = await Test.countDocuments(availableQuery);
   const freeTestCount = await Test.countDocuments(getAvailableTestQuery({ ...baseQuery, isPremium: false }));
   const premiumTestCount = testCount - freeTestCount;
   const tests = await Test.find(availableQuery)
-    .select('name description difficulty duration totalQuestions isPremium price originalPrice subject testType class chapter tags activeFrom activeUntil')
+    .select('name description difficulty duration totalQuestions isPremium price originalPrice subject subCategory testType class chapter tags activeFrom activeUntil')
     .sort({ isPremium: 1, createdAt: -1 })
     .limit(10);
   const testsWithQuestionCount = await Promise.all(
