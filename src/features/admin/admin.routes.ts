@@ -131,6 +131,9 @@ router.get('/reports/export/:type', c.exportReportCSV);
 router.get('/settings', c.getSettings);
 router.patch('/settings', c.updateSettings);
 
+// ─── AI ASSISTANT ───
+router.post('/ai/chat', c.aiChat);
+
 // ─── EXAM CATEGORIES ───
 router.get('/exam-categories', c.getExamCategories);
 router.post('/exam-categories', c.createExamCategory);
