@@ -15,3 +15,4 @@ export * from './catalog.controller';
 export * from './engagement.controller';
 export * from './sections.controller';
 export * from './deleteAll.controller';
+export * from './examSections.controller';

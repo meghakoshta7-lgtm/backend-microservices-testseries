@@ -3,6 +3,7 @@ import { asyncHandler } from '@/middleware/asyncHandler';
 import { AuthRequest } from '@/middleware/auth';
 import { ExamCategory } from '@/models/ExamCategory';
 import { Exam } from '@/models/Exam';
+import { ExamSection } from '@/models/ExamSection';
 import { Test } from '@/models/Test';
 import { Question } from '@/models/Question';
 import { TestResult } from '@/models/TestResult';
@@ -24,7 +25,8 @@ export const getExamsByCategory = asyncHandler(async (req: AuthRequest, res: Res
     return res.status(404).json({ success: false, message: 'Category not found' });
   }
   const exams = await Exam.find({ categoryId: category._id, isActive: true }).sort({ order: 1 });
-  res.json({ success: true, data: { category, exams } });
+  const sections = await ExamSection.find({ categoryId: category._id }).sort({ order: 1 });
+  res.json({ success: true, data: { category, exams, sections } });
 });
 
 export const getExamDetail = asyncHandler(async (req: AuthRequest, res: Response) => {

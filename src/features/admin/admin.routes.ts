@@ -143,6 +143,12 @@ router.post('/exams', c.createExam);
 router.patch('/exams/:id', c.updateExam);
 router.delete('/exams/:id', c.deleteExam);
 
+// ─── EXAM SECTIONS ───
+router.get('/exam-sections', c.getExamSections);
+router.post('/exam-sections', c.createExamSection);
+router.patch('/exam-sections/:id', c.updateExamSection);
+router.delete('/exam-sections/:id', c.deleteExamSection);
+
 // ─── SUBJECTS (Admin) ───
 router.get('/subjects', c.getAdminSubjects);
 router.post('/subjects', c.createAdminSubject);
