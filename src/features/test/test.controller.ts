@@ -30,13 +30,14 @@ const buildStreakMessage = (streak: number, awarded: boolean) => {
 export const getTests = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
   await deactivateExpiredTests(Test);
 
-  const { category, subject, difficulty, search, page = 1, limit = 10 } = req.query;
+  const { category, subject, difficulty, search, testType, page = 1, limit = 10 } = req.query;
 
   const query: any = getAvailableTestQuery();
 
   if (category) query.category = category;
   if (subject) query.subject = subject;
   if (difficulty) query.difficulty = difficulty;
+  if (testType) query.testType = testType;
   if (search) {
     query.$or = [
       { name: { $regex: search, $options: 'i' } },
