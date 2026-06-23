@@ -44,11 +44,6 @@ export const getTests = asyncHandler(async (req: AuthRequest, res: Response): Pr
     ];
   }
 
-  const premium = req.user ? await isUserPremium(req.user._id) : false;
-  if (!premium) {
-    query.isPremium = false;
-  }
-
   const skip = (Number(page) - 1) * Number(limit);
 
   const [tests, total] = await Promise.all([
