@@ -3,6 +3,7 @@ import { AppError } from '@/middleware/error';
 import { asyncHandler } from '@/middleware/asyncHandler';
 import { AuthRequest } from '@/middleware/auth';
 import { User } from '@/models/User';
+import { sendOTPEmail } from '@/services/email.service';
 
 const generateOTP = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -27,8 +28,7 @@ export const sendOTP = asyncHandler(async (req: AuthRequest, res: Response): Pro
   user.otpExpires = otpExpires;
   await user.save();
 
-  // In production, send OTP via email/SMS here
-  console.log(`[OTP] Email: ${email}, Code: ${otp}`);
+  await sendOTPEmail(email, otp);
 
   res.json({
     success: true,
@@ -95,7 +95,7 @@ export const resendOTP = asyncHandler(async (req: AuthRequest, res: Response): P
   user.otpExpires = otpExpires;
   await user.save();
 
-  console.log(`[OTP Resend] Email: ${email}, Code: ${otp}`);
+  await sendOTPEmail(email, otp);
 
   res.json({
     success: true,

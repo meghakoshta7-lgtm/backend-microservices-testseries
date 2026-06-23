@@ -420,3 +420,33 @@ export const sendTestCompletionEmail = async (
     text: `You completed ${result.testName}. Score: ${result.score}/${result.totalMarks}, Accuracy: ${Math.round(result.accuracy)}%.`,
   });
 };
+
+export const sendOTPEmail = async (to: string, otp: string): Promise<void> => {
+  if (!isConfigured()) {
+    console.warn(`[Email skipped] SMTP not configured. OTP ${otp} would be sent to ${to}`);
+    return;
+  }
+
+  await sendEmail({
+    to,
+    subject: `${appName}: Your OTP for email verification`,
+    html: wrapEmail({
+      eyebrow: 'Email verification',
+      title: 'Your OTP code',
+      intro: `Use the following OTP to verify your email address on ${appName}. This code expires in 10 minutes.`,
+      body: `
+        <div style="text-align:center;padding:24px 0;">
+          <div style="display:inline-block;font-size:36px;font-weight:800;letter-spacing:8px;color:#2563eb;background:#eff6ff;padding:16px 32px;border-radius:12px;">
+            ${escapeHtml(otp)}
+          </div>
+        </div>
+        <p style="font-size:14px;line-height:1.5;color:#64748b;text-align:center;">
+          If you did not request this code, please ignore this email.
+        </p>
+      `,
+      ctaLabel: 'Verify Email',
+      ctaHref: appLink('/verify-email'),
+    }),
+    text: `Your OTP for email verification is: ${otp}. It expires in 10 minutes.`,
+  });
+};
