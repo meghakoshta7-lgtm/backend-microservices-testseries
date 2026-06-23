@@ -4,3 +4,9 @@ dist/
 uploads/
 *.log
 .DS_Store
+
+# Temp scripts
+_check_*.ts
+_find_*.ts
+_seed_*.ts
+_fix_*.ts
