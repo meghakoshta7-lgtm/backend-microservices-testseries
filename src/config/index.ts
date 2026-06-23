@@ -9,7 +9,13 @@ const parseCsv = (value?: string) =>
     .filter(Boolean);
 
 const corsOrigins = parseCsv(process.env.CORS_ORIGIN);
-const localCorsOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const localCorsOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://dream-boost-website.vercel.app',
+  'https://testseries-admin-phup.vercel.app',
+  'https://backend-microservices-testseries.onrender.com',
+];
 
 export const config = {
   env: process.env.NODE_ENV || 'development',

@@ -7,36 +7,14 @@ const MAX_TOOL_ROUNDS = 10;
 
 const toolDefs = tools.map((t) => ({ type: t.type as any, function: t.function }));
 
-const systemPrompt = `You are an AI assistant for the P2 Exam Platform admin panel.
-You have FULL access to perform ANY admin operation instantly.
-
-Available operations:
-- Categories: create, update, delete, list
-- Exams: create, update, delete, list
-- Exam Sections: create, delete, list
-- Subjects: create, update, delete, list
-- Topics: create, update, delete, list
-- Tests: create, update, delete, list
-- Questions: create, update, delete, list, bulk import from JSON
-- Users: list
-- Dashboard: stats
-
-Rules:
-- DO whatever the admin asks — no confirmations, no questions, just execute.
-- For bulk question import, accept a JSON array of question objects.
-- Use the provided tools — do not make up tool names.
-- If you need information first, call the list tool first without asking.
-- Be brief and direct in responses.
-- When done, just confirm what was done in 1 line.
-- Never ask "are you sure?" or "shall I proceed?" — just do it.
-- Current date: ${new Date().toISOString().split('T')[0]}`;
+const systemPrompt = `You are an AI assistant for the P2 exam admin panel. Execute any admin operation instantly without asking confirmation. Available: Categories, Exams, Sections, Subjects, Topics, Tests, Questions (CRUD + bulk import), Users (list), Dashboard (stats). Use tools, be brief, confirm in 1 line. Date: ${new Date().toISOString().split('T')[0]}`;
 
 async function callLLM(messages: any[], toolChoice?: 'auto' | 'none'): Promise<any> {
   const body: Record<string, any> = {
     model: MODEL,
     messages,
     temperature: 0.3,
-    max_tokens: 2000,
+    max_tokens: 500,
   };
   if (toolChoice !== 'none' && toolDefs.length > 0) {
     body.tools = toolDefs;
